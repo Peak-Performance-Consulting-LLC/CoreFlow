@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    @apply scroll-smooth bg-surface-950;
+  }
+
+  body {
+    @apply min-h-screen bg-surface-950 font-sans text-slate-100 selection:bg-cyan-400/30 selection:text-white;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(79, 124, 255, 0.16), transparent 20%),
+      radial-gradient(circle at 80% 0%, rgba(52, 215, 255, 0.14), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(139, 92, 246, 0.12), transparent 18%),
+      linear-gradient(180deg, #070b17 0%, #090f1d 48%, #060913 100%);
+    background-attachment: fixed;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  button,
+  input {
+    @apply outline-none;
+  }
+
+  #app {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-[28px] border border-white/10 bg-white/[0.04] shadow-panel backdrop-blur-xl;
+  }
+
+  .surface-panel {
+    @apply rounded-[28px] border border-white/10 bg-slate-950/60 shadow-panel backdrop-blur-xl;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-white via-cyan-100 to-blue-300 bg-clip-text text-transparent;
+  }
+
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .grid-overlay {
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(79, 124, 255, 0.8), rgba(52, 215, 255, 0.65));
+  border-radius: 999px;
+}

@@ -1,0 +1,515 @@
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { useCrmWorkspace } from '../../hooks/useCrmWorkspace';
+import type {
+  VoiceAgentBindingRecord,
+  VoiceAgentCreateInput,
+  VoiceAgentMappingInput,
+  VoiceAgentMappingRecord,
+  VoiceAgentRecord,
+  VoiceAgentSummary,
+  VoiceAgentUpdateInput,
+} from '../../lib/voice-agent-service';
+import {
+  bindVoiceAgentNumber,
+  createVoiceAgent,
+  getVoiceAgent,
+  listVoiceAgents,
+  setVoiceAgentMappings,
+  VoiceAgentServiceError,
+  updateVoiceAgent,
+} from '../../lib/voice-agent-service';
+import type { VoiceNumberRecord } from '../../lib/voice-service';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { SectionSkeleton } from '../ui/SectionSkeleton';
+import { type VoiceAgentFormValues } from './VoiceAgentForm';
+import { VoiceAgentBindingsEditor } from './VoiceAgentBindingsEditor';
+import { VoiceAgentFieldMappingEditor } from './VoiceAgentFieldMappingEditor';
+import { VoiceAgentFormDrawer } from './VoiceAgentFormDrawer';
+import type { Session } from '@supabase/supabase-js';
+
+const CREATE_ASSISTANT_DRAFT_STORAGE_KEY = 'coreflow.voice.assistant.createDraft';
+
+interface VoiceAgentsPanelProps {
+  session: Session;
+  workspaceId: string;
+  numbers: VoiceNumberRecord[];
+}
+
+function createEmptyDraftValues(): VoiceAgentFormValues {
+  return {
+    name: '',
+    description: '',
+    greeting: '',
+    system_prompt: '',
+    source_id: '',
+    status: 'draft',
+  };
+}
+
+function getDraftStorageKey(workspaceId: string) {
+  return `${CREATE_ASSISTANT_DRAFT_STORAGE_KEY}:${workspaceId}`;
+}
+
+function readCreateAssistantDraft(workspaceId: string): VoiceAgentFormValues {
+  if (typeof window === 'undefined') {
+    return createEmptyDraftValues();
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(getDraftStorageKey(workspaceId));
+
+    if (!raw) {
+      return createEmptyDraftValues();
+    }
+
+    const parsed = JSON.parse(raw) as Partial<VoiceAgentFormValues>;
+    return {
+      name: typeof parsed.name === 'string' ? parsed.name : '',
+      description: typeof parsed.description === 'string' ? parsed.description : '',
+      greeting: typeof parsed.greeting === 'string' ? parsed.greeting : '',
+      system_prompt: typeof parsed.system_prompt === 'string' ? parsed.system_prompt : '',
+      source_id: typeof parsed.source_id === 'string' ? parsed.source_id : '',
+      status: parsed.status === 'disabled' ? 'disabled' : 'draft',
+    };
+  } catch {
+    return createEmptyDraftValues();
+  }
+}
+
+function persistCreateAssistantDraft(workspaceId: string, values: VoiceAgentFormValues) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.sessionStorage.setItem(getDraftStorageKey(workspaceId), JSON.stringify(values));
+}
+
+function clearCreateAssistantDraft(workspaceId: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.sessionStorage.removeItem(getDraftStorageKey(workspaceId));
+}
+
+export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsPanelProps) {
+  const { config, configError, configLoading, configRefreshing } = useCrmWorkspace();
+  const [agents, setAgents] = useState<VoiceAgentSummary[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<{
+    agent: VoiceAgentRecord;
+    bindings: VoiceAgentBindingRecord[];
+    mappings: VoiceAgentMappingRecord[];
+  } | null>(null);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState('');
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [submittingAgent, setSubmittingAgent] = useState(false);
+  const [savingMappings, setSavingMappings] = useState(false);
+  const [savingBindingNumberId, setSavingBindingNumberId] = useState<string | null>(null);
+  const [agentErrorMessage, setAgentErrorMessage] = useState('');
+  const [agentActivationIssues, setAgentActivationIssues] = useState<string[]>([]);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  const [createDraftValues, setCreateDraftValues] = useState<VoiceAgentFormValues>(() => readCreateAssistantDraft(workspaceId));
+  const [editDraftValues, setEditDraftValues] = useState<VoiceAgentFormValues>(createEmptyDraftValues);
+
+  const readyNumbers = useMemo(
+    () =>
+      numbers.filter(
+        (number) =>
+          number.is_active && number.provisioning_status === 'active' && number.webhook_status === 'ready' && !number.released_at,
+      ),
+    [numbers],
+  );
+
+  async function loadAgents(nextSelectedAgentId?: string | null) {
+    setListLoading(true);
+    setListError('');
+
+    try {
+      const response = await listVoiceAgents(session, workspaceId);
+      setAgents(response.agents);
+
+      const requestedSelection = nextSelectedAgentId ?? selectedAgentId;
+
+      if (requestedSelection && response.agents.some((agent) => agent.id === requestedSelection)) {
+        setSelectedAgentId(requestedSelection);
+      } else if (response.agents[0]) {
+        setSelectedAgentId(response.agents[0].id);
+      } else {
+        setSelectedAgentId(null);
+        setDetail(null);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load voice assistants.';
+      setListError(message);
+    } finally {
+      setListLoading(false);
+    }
+  }
+
+  async function loadAgentDetail(voiceAgentId: string) {
+    setDetailLoading(true);
+
+    try {
+      const response = await getVoiceAgent(session, workspaceId, voiceAgentId);
+      setDetail(response);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load assistant details.';
+      toast.error(message);
+      setDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadAgents();
+  }, [session, workspaceId]);
+
+  useEffect(() => {
+    const nextDraft = readCreateAssistantDraft(workspaceId);
+    setCreateDraftValues(nextDraft);
+  }, [workspaceId]);
+
+  useEffect(() => {
+    persistCreateAssistantDraft(workspaceId, createDraftValues);
+  }, [workspaceId, createDraftValues]);
+
+  useEffect(() => {
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+
+    if (!selectedAgentId) {
+      setDetail(null);
+      return;
+    }
+
+    void loadAgentDetail(selectedAgentId);
+  }, [selectedAgentId]);
+
+  async function handleCreateAgent(values: VoiceAgentFormValues) {
+    setSubmittingAgent(true);
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+
+    try {
+      const payload: VoiceAgentCreateInput = {
+        workspace_id: workspaceId,
+        name: values.name,
+        description: values.description || null,
+        greeting: values.greeting,
+        system_prompt: values.system_prompt,
+        source_id: values.source_id || null,
+        status: values.status,
+      };
+      const response = await createVoiceAgent(session, payload);
+      toast.success('Voice assistant created.');
+      setAgentErrorMessage('');
+      setAgentActivationIssues([]);
+      setIsCreateDrawerOpen(false);
+      setCreateDraftValues(createEmptyDraftValues());
+      clearCreateAssistantDraft(workspaceId);
+      await loadAgents(response.agent.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save voice assistant.';
+      setAgentErrorMessage(message);
+      setAgentActivationIssues(error instanceof VoiceAgentServiceError ? error.activationIssues : []);
+      toast.error(message);
+    } finally {
+      setSubmittingAgent(false);
+    }
+  }
+
+  async function handleUpdateAgent(values: VoiceAgentFormValues) {
+    if (!detail) {
+      return;
+    }
+
+    setSubmittingAgent(true);
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+
+    try {
+      const payload: VoiceAgentUpdateInput = {
+        workspace_id: workspaceId,
+        voice_agent_id: detail.agent.id,
+        name: values.name,
+        description: values.description || null,
+        greeting: values.greeting,
+        system_prompt: values.system_prompt,
+        source_id: values.source_id || null,
+        status: values.status,
+      };
+      const response = await updateVoiceAgent(session, payload);
+      setDetail((current) => (current ? { ...current, agent: response.agent } : current));
+      toast.success('Voice assistant updated.');
+      setAgentErrorMessage('');
+      setAgentActivationIssues([]);
+      setEditDraftValues({
+        name: response.agent.name,
+        description: response.agent.description ?? '',
+        greeting: response.agent.greeting,
+        system_prompt: response.agent.system_prompt,
+        source_id: response.agent.source_id ?? '',
+        status: response.agent.status,
+      });
+      setIsEditDrawerOpen(false);
+      await loadAgents(response.agent.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save voice assistant.';
+      setAgentErrorMessage(message);
+      setAgentActivationIssues(error instanceof VoiceAgentServiceError ? error.activationIssues : []);
+      toast.error(message);
+    } finally {
+      setSubmittingAgent(false);
+    }
+  }
+
+  function handleOpenCreateDrawer() {
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+    setIsCreateDrawerOpen(true);
+  }
+
+  function handleCloseCreateDrawer() {
+    if (submittingAgent) {
+      return;
+    }
+
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+    setIsCreateDrawerOpen(false);
+  }
+
+  function handleOpenEditDrawer() {
+    if (!detail) {
+      return;
+    }
+
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+    setEditDraftValues({
+      name: detail.agent.name,
+      description: detail.agent.description ?? '',
+      greeting: detail.agent.greeting,
+      system_prompt: detail.agent.system_prompt,
+      source_id: detail.agent.source_id ?? '',
+      status: detail.agent.status,
+    });
+    setIsEditDrawerOpen(true);
+  }
+
+  function handleCloseEditDrawer() {
+    if (submittingAgent) {
+      return;
+    }
+
+    setAgentErrorMessage('');
+    setAgentActivationIssues([]);
+    setIsEditDrawerOpen(false);
+  }
+
+  async function handleSaveMappings(mappings: VoiceAgentMappingInput[]) {
+    if (!detail) {
+      return;
+    }
+
+    setSavingMappings(true);
+
+    try {
+      const response = await setVoiceAgentMappings(session, {
+        workspace_id: workspaceId,
+        voice_agent_id: detail.agent.id,
+        mappings,
+      });
+      setDetail((current) => (current ? { ...current, mappings: response.mappings } : current));
+      toast.success('Assistant mappings saved.');
+      await loadAgents(detail.agent.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save mappings.';
+      toast.error(message);
+    } finally {
+      setSavingMappings(false);
+    }
+  }
+
+  async function handleToggleBinding(workspacePhoneNumberId: string, nextActive: boolean) {
+    if (!detail) {
+      return;
+    }
+
+    setSavingBindingNumberId(workspacePhoneNumberId);
+
+    try {
+      const response = await bindVoiceAgentNumber(session, {
+        workspace_id: workspaceId,
+        voice_agent_id: detail.agent.id,
+        workspace_phone_number_id: workspacePhoneNumberId,
+        is_active: nextActive,
+      });
+
+      setDetail((current) => {
+        if (!current) {
+          return current;
+        }
+
+        const remaining = current.bindings.filter((binding) => binding.workspace_phone_number_id !== workspacePhoneNumberId);
+        return {
+          ...current,
+          bindings: [...remaining, response.binding],
+        };
+      });
+
+      toast.success(nextActive ? 'Assistant bound to number.' : 'Assistant binding deactivated.');
+      await loadAgents(detail.agent.id);
+      await loadAgentDetail(detail.agent.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to update binding.';
+      toast.error(message);
+    } finally {
+      setSavingBindingNumberId(null);
+    }
+  }
+
+  if (configLoading && !config) {
+    return <SectionSkeleton title="Voice assistants" rows={6} />;
+  }
+
+  if (configError) {
+    return <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{configError}</Card>;
+  }
+
+  if (listLoading) {
+    return <SectionSkeleton title="Voice assistants" rows={5} />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card className="p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-xs uppercase tracking-[0.28em] text-emerald-200">Assistants</div>
+            <h2 className="mt-2 font-display text-3xl text-white">AI assistant configuration and binding</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
+              Create workspace assistants, define their collected fields, map those fields safely into CRM, and bind
+              assistants to ready voice numbers.
+            </p>
+          </div>
+
+          <Button type="button" variant="secondary" onClick={handleOpenCreateDrawer}>
+            New assistant
+          </Button>
+        </div>
+
+        {configRefreshing ? (
+          <div className="mt-4 text-sm text-slate-400">Refreshing CRM field metadata in the background...</div>
+        ) : null}
+
+        {listError ? <div className="mt-4 text-sm text-rose-300">{listError}</div> : null}
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          {agents.map((agent) => (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => setSelectedAgentId(agent.id)}
+              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                selectedAgentId === agent.id
+                  ? 'border-cyan-300/50 bg-cyan-300/10 text-white'
+                  : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white'
+              }`}
+            >
+              <div className="font-medium">{agent.name}</div>
+              <div className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{agent.status}</div>
+              <div className="mt-2 text-xs text-slate-400">{agent.active_bindings.length} active binding(s)</div>
+            </button>
+          ))}
+
+          {agents.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/15 px-4 py-3 text-sm text-slate-400">
+              No assistants yet. Create the first draft assistant to start Phase 2.
+            </div>
+          ) : null}
+        </div>
+      </Card>
+
+      {detailLoading ? <SectionSkeleton title="Assistant details" rows={5} /> : null}
+
+      {detail ? (
+        <>
+          <Card className="p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Selected assistant</div>
+                <h3 className="mt-2 font-display text-2xl text-white">{detail.agent.name}</h3>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+                  Manage CRM mappings and ready-number bindings below. Use edit to update the assistant setup in a side drawer.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
+                  {detail.agent.status}
+                </div>
+                <Button type="button" variant="secondary" onClick={handleOpenEditDrawer}>
+                  Edit assistant
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <VoiceAgentFieldMappingEditor
+            mappings={detail.mappings}
+            customFields={config?.customFields ?? []}
+            saving={savingMappings}
+            onSave={handleSaveMappings}
+          />
+
+          <VoiceAgentBindingsEditor
+            numbers={readyNumbers}
+            bindings={detail.bindings}
+            allAgents={agents}
+            savingNumberId={savingBindingNumberId}
+            onToggleBinding={handleToggleBinding}
+          />
+        </>
+      ) : agents.length === 0 ? (
+        <Card className="p-6 text-sm leading-7 text-slate-400">
+          No assistants yet. Click <span className="text-white">New assistant</span> to open the setup drawer and create the first draft.
+        </Card>
+      ) : null}
+
+      <VoiceAgentFormDrawer
+        isOpen={isCreateDrawerOpen}
+        mode="create"
+        agent={null}
+        sources={config?.sources ?? []}
+        submitting={submittingAgent}
+        errorMessage={agentErrorMessage}
+        activationIssues={agentActivationIssues}
+        values={createDraftValues}
+        onValuesChange={setCreateDraftValues}
+        onClose={handleCloseCreateDrawer}
+        onSubmit={handleCreateAgent}
+      />
+
+      <VoiceAgentFormDrawer
+        isOpen={isEditDrawerOpen}
+        mode="edit"
+        agent={detail?.agent ?? null}
+        sources={config?.sources ?? []}
+        submitting={submittingAgent}
+        errorMessage={agentErrorMessage}
+        activationIssues={agentActivationIssues}
+        values={editDraftValues}
+        onValuesChange={setEditDraftValues}
+        onClose={handleCloseEditDrawer}
+        onSubmit={handleUpdateAgent}
+      />
+    </div>
+  );
+}
