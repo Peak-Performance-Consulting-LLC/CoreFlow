@@ -73,8 +73,8 @@ export function VoiceAgentFieldMappingEditor({
     <Card className="p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-display text-2xl text-white">Collected fields and CRM mapping</h3>
-          <p className="mt-2 text-sm leading-7 text-slate-400">
+          <h3 className="font-display text-2xl text-slate-900">Collected fields and CRM mapping</h3>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
             Define exactly which fields the assistant can collect and where each field is allowed to land in CRM.
           </p>
         </div>
@@ -90,15 +90,15 @@ export function VoiceAgentFieldMappingEditor({
       </div>
 
       {rows.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-400">
+        <div className="mt-6 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 text-sm text-slate-600">
           No field mappings yet. Add at least one field before activating an assistant.
         </div>
       ) : (
         <div className="mt-6 space-y-4">
           {rows.map((row, index) => (
-            <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5">
               <div className="grid gap-4 xl:grid-cols-2">
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Source key</span>
                   <input
                     value={row.source_key}
@@ -108,12 +108,12 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, source_key: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                     placeholder="service_needed"
                   />
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Source label</span>
                   <input
                     value={row.source_label}
@@ -123,13 +123,13 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, source_label: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                     placeholder="Service needed"
                   />
                 </label>
               </div>
 
-              <label className="mt-4 flex flex-col gap-2 text-sm text-slate-200">
+              <label className="mt-4 flex flex-col gap-2 text-sm text-slate-700">
                 <span className="font-medium">Source description</span>
                 <textarea
                   value={row.source_description ?? ''}
@@ -140,13 +140,13 @@ export function VoiceAgentFieldMappingEditor({
                       ),
                     )}
                   rows={2}
-                  className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white"
+                  className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
                   placeholder="Explain what the assistant should collect for this field."
                 />
               </label>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-4">
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Value type</span>
                   <select
                     value={row.source_value_type}
@@ -158,7 +158,7 @@ export function VoiceAgentFieldMappingEditor({
                             : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                   >
                     {sourceValueTypeOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -168,7 +168,7 @@ export function VoiceAgentFieldMappingEditor({
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Target type</span>
                   <select
                     value={row.target_type}
@@ -184,14 +184,14 @@ export function VoiceAgentFieldMappingEditor({
                             : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                   >
                     <option value="core">Core</option>
                     <option value="custom">Custom</option>
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Target field</span>
                   <select
                     value={row.target_key}
@@ -201,7 +201,7 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, target_key: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                   >
                     {row.target_type === 'core'
                       ? coreTargetOptions.map((option) => (
@@ -217,7 +217,7 @@ export function VoiceAgentFieldMappingEditor({
                   </select>
                 </label>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-200">
+                <label className="flex items-center gap-3 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-700">
                   <input
                     type="checkbox"
                     checked={row.is_required}
@@ -227,7 +227,7 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, is_required: event.target.checked } : item
                         ),
                       )}
-                    className="h-4 w-4 rounded border-white/20 bg-transparent"
+                    className="h-4 w-4 rounded border-[#D8CCBD] bg-transparent"
                   />
                   Required field
                 </label>

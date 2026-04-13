@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -14,7 +14,7 @@
   }
 
   * {
-    @apply border-white/10;
+    @apply border-[#E7DED2];
   }
 
   html {
@@ -22,12 +22,12 @@
   }
 
   body {
-    @apply min-h-screen bg-surface-950 font-sans text-slate-100 selection:bg-cyan-400/30 selection:text-white;
+    @apply min-h-screen bg-surface-950 font-sans text-slate-900 selection:bg-accent-blue/20 selection:text-slate-900;
     background-image:
-      radial-gradient(circle at 20% 20%, rgba(79, 124, 255, 0.16), transparent 20%),
-      radial-gradient(circle at 80% 0%, rgba(52, 215, 255, 0.14), transparent 22%),
-      radial-gradient(circle at 50% 100%, rgba(139, 92, 246, 0.12), transparent 18%),
-      linear-gradient(180deg, #070b17 0%, #090f1d 48%, #060913 100%);
+      radial-gradient(circle at 20% 18%, rgba(185, 146, 90, 0.12), transparent 22%),
+      radial-gradient(circle at 82% 0%, rgba(198, 165, 107, 0.1), transparent 24%),
+      radial-gradient(circle at 50% 100%, rgba(122, 92, 51, 0.08), transparent 20%),
+      linear-gradient(180deg, #f7f4ee 0%, #f5f0e8 48%, #f3eee6 100%);
     background-attachment: fixed;
   }
 
@@ -47,15 +47,15 @@
 
 @layer components {
   .glass-panel {
-    @apply rounded-[28px] border border-white/10 bg-white/[0.04] shadow-panel backdrop-blur-xl;
+    @apply rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] shadow-panel;
   }
 
   .surface-panel {
-    @apply rounded-[28px] border border-white/10 bg-slate-950/60 shadow-panel backdrop-blur-xl;
+    @apply rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] shadow-panel;
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-white via-cyan-100 to-blue-300 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-slate-900 via-accent-blue to-[#7A5C33] bg-clip-text text-transparent;
   }
 
   .section-shell {
@@ -64,8 +64,8 @@
 
   .grid-overlay {
     background-image:
-      linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+      linear-gradient(rgba(154, 145, 135, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(154, 145, 135, 0.08) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 }
@@ -75,10 +75,10 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(231, 222, 210, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(79, 124, 255, 0.8), rgba(52, 215, 255, 0.65));
+  background: linear-gradient(180deg, rgba(185, 146, 90, 0.9), rgba(122, 92, 51, 0.72));
   border-radius: 999px;
 }

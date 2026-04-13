@@ -25,11 +25,11 @@ export function FeaturesSection() {
               transition={{ duration: 0.5, delay: index * 0.06 }}
             >
               <Card className="h-full p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-blue/25 bg-accent-blue/10 text-accent-blue">
                   <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-6 font-display text-2xl font-semibold text-white">{feature.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-400">{feature.description}</p>
+                <h3 className="mt-6 font-display text-2xl font-semibold text-slate-900">{feature.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">{feature.description}</p>
               </Card>
             </motion.div>
           );

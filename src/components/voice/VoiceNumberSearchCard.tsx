@@ -45,8 +45,8 @@ function SuggestionMenu<TSuggestion>({
 }: SuggestionMenuProps<TSuggestion>) {
   if (items.length === 0) {
     return (
-      <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 rounded-[24px] border border-white/10 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl">
-        <div className="rounded-2xl border border-dashed border-white/10 px-4 py-3 text-sm text-slate-500">
+      <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 rounded-[24px] border border-[#E7DED2] bg-[#F7F4EE] p-3 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-dashed border-[#E7DED2] px-4 py-3 text-sm text-slate-500">
           {emptyText}
         </div>
       </div>
@@ -54,7 +54,7 @@ function SuggestionMenu<TSuggestion>({
   }
 
   return (
-    <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 overflow-hidden rounded-[24px] border border-cyan-300/20 bg-slate-950/95 shadow-2xl backdrop-blur-xl">
+    <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 overflow-hidden rounded-[24px] border border-accent-blue/25 bg-[#F7F4EE] shadow-2xl backdrop-blur-xl">
       <div className="max-h-72 overflow-y-auto p-2">
         {items.map((item) => (
           <button
@@ -64,11 +64,11 @@ function SuggestionMenu<TSuggestion>({
               event.preventDefault();
               onSelect(item);
             }}
-            className="flex w-full items-start justify-between gap-4 rounded-2xl px-4 py-3 text-left transition hover:bg-cyan-300/10"
+            className="flex w-full items-start justify-between gap-4 rounded-2xl px-4 py-3 text-left transition hover:bg-accent-blue/10"
           >
             <div>
-              <div className="font-semibold text-white">{getPrimary(item)}</div>
-              <div className="mt-1 text-sm text-slate-400">{getSecondary(item)}</div>
+              <div className="font-semibold text-slate-900">{getPrimary(item)}</div>
+              <div className="mt-1 text-sm text-slate-600">{getSecondary(item)}</div>
             </div>
           </button>
         ))}
@@ -177,22 +177,22 @@ export function VoiceNumberSearchCard({
     <Card className="p-6">
       <div className="flex flex-col gap-6">
         <div>
-          <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Managed provisioning</div>
-          <h3 className="mt-2 font-display text-2xl text-white">Search available US numbers</h3>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+          <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Managed provisioning</div>
+          <h3 className="mt-2 font-display text-2xl text-slate-900">Search available US numbers</h3>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
             Search CoreFlow-managed US inventory and provision a workspace line without exposing raw Telnyx setup to the
             user. Phase 1 intentionally stays US-only.
           </p>
         </div>
 
         <div ref={formRef} className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <label className="relative flex flex-col gap-2 text-sm text-slate-200">
+          <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">City</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-slate-950/70 px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
                 activeField === 'city'
-                  ? 'border-cyan-300/60 bg-slate-950/90 shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-white/10'
+                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-[#E7DED2]'
               }`}
             >
               <input
@@ -204,7 +204,7 @@ export function VoiceNumberSearchCard({
                 }}
                 placeholder="Chicago"
                 autoComplete="off"
-                className="h-full w-full bg-transparent pr-10 text-sm text-white placeholder:text-slate-500"
+                className="h-full w-full bg-transparent pr-10 text-sm text-slate-900 placeholder:text-slate-500"
               />
               <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4 text-slate-500" />
             </div>
@@ -226,13 +226,13 @@ export function VoiceNumberSearchCard({
             ) : null}
           </label>
 
-          <label className="relative flex flex-col gap-2 text-sm text-slate-200">
+          <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">State</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-slate-950/70 px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
                 activeField === 'state'
-                  ? 'border-cyan-300/60 bg-slate-950/90 shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-white/10'
+                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-[#E7DED2]'
               }`}
             >
               <input
@@ -244,7 +244,7 @@ export function VoiceNumberSearchCard({
                 }}
                 placeholder="IL"
                 autoComplete="off"
-                className="h-full w-full bg-transparent pr-10 text-sm text-white placeholder:text-slate-500"
+                className="h-full w-full bg-transparent pr-10 text-sm text-slate-900 placeholder:text-slate-500"
               />
               <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4 text-slate-500" />
             </div>
@@ -263,13 +263,13 @@ export function VoiceNumberSearchCard({
             ) : null}
           </label>
 
-          <label className="relative flex flex-col gap-2 text-sm text-slate-200">
+          <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Area code</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-slate-950/70 px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
                 activeField === 'areaCode'
-                  ? 'border-cyan-300/60 bg-slate-950/90 shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-white/10'
+                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-[#E7DED2]'
               }`}
             >
               <input
@@ -281,7 +281,7 @@ export function VoiceNumberSearchCard({
                 }}
                 placeholder="312"
                 autoComplete="off"
-                className="h-full w-full bg-transparent pr-10 text-sm text-white placeholder:text-slate-500"
+                className="h-full w-full bg-transparent pr-10 text-sm text-slate-900 placeholder:text-slate-500"
               />
               <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4 text-slate-500" />
             </div>
@@ -304,7 +304,7 @@ export function VoiceNumberSearchCard({
             ) : null}
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Number type</span>
             <select
               value={filters.phone_number_type ?? ''}
@@ -313,7 +313,7 @@ export function VoiceNumberSearchCard({
                   phone_number_type: event.target.value as 'local' | 'toll_free' | '',
                 })
               }
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             >
               <option value="">Any</option>
               <option value="local">Local</option>
@@ -321,7 +321,7 @@ export function VoiceNumberSearchCard({
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Results</span>
             <input
               type="number"
@@ -329,7 +329,7 @@ export function VoiceNumberSearchCard({
               max={20}
               value={filters.limit ?? 10}
               onChange={(event) => onFilterChange({ limit: Number(event.target.value) || 10 })}
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             />
           </label>
         </div>
@@ -345,14 +345,14 @@ export function VoiceNumberSearchCard({
           results.length > 0 ? (
             <div className="grid gap-4 lg:grid-cols-2">
               {results.map((result) => (
-                <div key={result.phoneNumber} className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
+                <div key={result.phoneNumber} className="rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="font-display text-2xl text-white">{result.phoneNumber}</div>
+                      <div className="font-display text-2xl text-slate-900">{result.phoneNumber}</div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-slate-500">
                         <span>{result.phoneNumberType ?? 'standard'}</span>
                         {result.quickship ? (
-                          <span className="inline-flex items-center gap-1 text-cyan-100">
+                          <span className="inline-flex items-center gap-1 text-accent-blue">
                             <Star className="h-3.5 w-3.5" />
                             Quickship
                           </span>
@@ -364,9 +364,9 @@ export function VoiceNumberSearchCard({
                     </Button>
                   </div>
 
-                  <div className="mt-5 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+                  <div className="mt-5 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-cyan-200" />
+                      <MapPin className="h-4 w-4 text-accent-blue" />
                       {formatLocation(result)}
                     </div>
                     <div>Monthly: {result.monthlyCost ?? 'Unknown'}</div>
@@ -377,7 +377,7 @@ export function VoiceNumberSearchCard({
               ))}
             </div>
           ) : (
-            <div className="rounded-[28px] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm text-slate-400">
+            <div className="rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] px-5 py-4 text-sm text-slate-600">
               No US numbers matched the current filters. Try a different area code, city, or number type.
             </div>
           )

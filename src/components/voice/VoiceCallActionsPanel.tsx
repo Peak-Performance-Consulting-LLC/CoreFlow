@@ -28,7 +28,7 @@ export function VoiceCallActionsPanel({
 
   return (
     <Card className="p-5">
-      <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Recovery actions</div>
+      <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Recovery actions</div>
       <div className="mt-4 flex flex-wrap gap-3">
         <Button type="button" variant="secondary" size="sm" onClick={onRetryLeadCreate} disabled={!canRetryLead} loading={retryingLead}>
           Retry lead create
@@ -46,12 +46,12 @@ export function VoiceCallActionsPanel({
 
       <div className="mt-5 space-y-3">
         {actionRuns.length === 0 ? (
-          <div className="text-sm text-slate-400">No voice action runs have been queued for this call yet.</div>
+          <div className="text-sm text-slate-600">No voice action runs have been queued for this call yet.</div>
         ) : actionRuns.map((run) => (
-          <div key={run.id} className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+          <div key={run.id} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="font-medium text-white">{run.action_type}</div>
+                <div className="font-medium text-slate-900">{run.action_type}</div>
                 <div className="mt-1 text-xs text-slate-500">
                   {run.status} • attempts {run.attempt_count}
                 </div>

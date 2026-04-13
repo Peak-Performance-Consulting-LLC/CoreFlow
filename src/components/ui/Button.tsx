@@ -7,10 +7,10 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-gradient-to-r from-[#4f7cff] via-[#34d7ff] to-[#8b5cf6] text-slate-950 shadow-lg shadow-cyan-500/20 hover:brightness-110',
+    'border border-[#A8844C] bg-[#B9925A] text-[#FFFDFC] shadow-[0_12px_28px_rgba(122,92,51,0.14)] hover:bg-[#C6A56B] hover:border-[#C6A56B]',
   secondary:
-    'border border-white/10 bg-white/5 text-white hover:border-cyan-300/40 hover:bg-white/10',
-  ghost: 'text-slate-300 hover:bg-white/5 hover:text-white',
+    'border border-[#E7DED2] bg-[#F7F4EE] text-slate-900 hover:border-accent-blue/35 hover:bg-[#EFE7DC]',
+  ghost: 'text-slate-700 hover:bg-[#F3EEE6] hover:text-slate-900',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -21,7 +21,7 @@ const sizeStyles: Record<ButtonSize, string> = {
 
 export function buttonStyles(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+    'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60',
     variantStyles[variant],
     sizeStyles[size],
   );

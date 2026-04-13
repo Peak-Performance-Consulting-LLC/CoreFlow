@@ -88,13 +88,13 @@ export function VoiceAgentForm({
     <Card className="p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-display text-2xl text-white">{mode === 'create' ? 'New assistant' : 'Assistant setup'}</h3>
-          <p className="mt-2 text-sm leading-7 text-slate-400">
+          <h3 className="font-display text-2xl text-slate-900">{mode === 'create' ? 'New assistant' : 'Assistant setup'}</h3>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
             Configure the greeting, prompt, and CRM source used when this assistant handles inbound calls.
           </p>
         </div>
         {mode === 'edit' && agent ? (
-          <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
+          <div className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
             {agent.status}
           </div>
         ) : null}
@@ -128,13 +128,13 @@ export function VoiceAgentForm({
             placeholder="Inbound sales intake"
           />
 
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Status</span>
             <select
               value={formValues.status}
               onChange={(event) =>
                 updateValues((current) => ({ ...current, status: event.target.value as VoiceAgentStatus }))}
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             >
               <option value="draft">Draft</option>
               {mode === 'edit' ? <option value="active">Active</option> : null}
@@ -143,45 +143,45 @@ export function VoiceAgentForm({
           </label>
         </div>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-200">
+        <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">Description</span>
           <textarea
             value={formValues.description}
             onChange={(event) => updateValues((current) => ({ ...current, description: event.target.value }))}
             rows={3}
-            className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white placeholder:text-slate-500"
+            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Short note about the assistant's role in this workspace."
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-200">
+        <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">Greeting</span>
           <textarea
             value={formValues.greeting}
             onChange={(event) => updateValues((current) => ({ ...current, greeting: event.target.value }))}
             rows={3}
-            className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white placeholder:text-slate-500"
+            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Hello, thanks for calling..."
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-200">
+        <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">System prompt</span>
           <textarea
             value={formValues.system_prompt}
             onChange={(event) => updateValues((current) => ({ ...current, system_prompt: event.target.value }))}
             rows={6}
-            className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white placeholder:text-slate-500"
+            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Describe how the assistant should collect information and stay within scope."
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-200">
+        <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">CRM source</span>
           <select
             value={formValues.source_id}
             onChange={(event) => updateValues((current) => ({ ...current, source_id: event.target.value }))}
-            className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+            className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
           >
             <option value="">Use inbound-call fallback</option>
             {sources.map((source) => (

@@ -393,8 +393,8 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-xs uppercase tracking-[0.28em] text-emerald-200">Assistants</div>
-            <h2 className="mt-2 font-display text-3xl text-white">AI assistant configuration and binding</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
+            <h2 className="mt-2 font-display text-3xl text-slate-900">AI assistant configuration and binding</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
               Create workspace assistants, define their collected fields, map those fields safely into CRM, and bind
               assistants to ready voice numbers.
             </p>
@@ -406,7 +406,7 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         </div>
 
         {configRefreshing ? (
-          <div className="mt-4 text-sm text-slate-400">Refreshing CRM field metadata in the background...</div>
+          <div className="mt-4 text-sm text-slate-600">Refreshing CRM field metadata in the background...</div>
         ) : null}
 
         {listError ? <div className="mt-4 text-sm text-rose-300">{listError}</div> : null}
@@ -419,18 +419,18 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
               onClick={() => setSelectedAgentId(agent.id)}
               className={`rounded-2xl border px-4 py-3 text-left transition ${
                 selectedAgentId === agent.id
-                  ? 'border-cyan-300/50 bg-cyan-300/10 text-white'
-                  : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white'
+                  ? 'border-accent-blue/40 bg-accent-blue/10 text-slate-900'
+                  : 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700 hover:border-[#D8CCBD] hover:text-slate-900'
               }`}
             >
               <div className="font-medium">{agent.name}</div>
               <div className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{agent.status}</div>
-              <div className="mt-2 text-xs text-slate-400">{agent.active_bindings.length} active binding(s)</div>
+              <div className="mt-2 text-xs text-slate-600">{agent.active_bindings.length} active binding(s)</div>
             </button>
           ))}
 
           {agents.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/15 px-4 py-3 text-sm text-slate-400">
+            <div className="rounded-2xl border border-dashed border-white/15 px-4 py-3 text-sm text-slate-600">
               No assistants yet. Create the first draft assistant to start Phase 2.
             </div>
           ) : null}
@@ -444,15 +444,15 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Selected assistant</div>
-                <h3 className="mt-2 font-display text-2xl text-white">{detail.agent.name}</h3>
-                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+                <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Selected assistant</div>
+                <h3 className="mt-2 font-display text-2xl text-slate-900">{detail.agent.name}</h3>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
                   Manage CRM mappings and ready-number bindings below. Use edit to update the assistant setup in a side drawer.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">
+                <div className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
                   {detail.agent.status}
                 </div>
                 <Button type="button" variant="secondary" onClick={handleOpenEditDrawer}>
@@ -478,8 +478,8 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
           />
         </>
       ) : agents.length === 0 ? (
-        <Card className="p-6 text-sm leading-7 text-slate-400">
-          No assistants yet. Click <span className="text-white">New assistant</span> to open the setup drawer and create the first draft.
+        <Card className="p-6 text-sm leading-7 text-slate-600">
+          No assistants yet. Click <span className="text-slate-900">New assistant</span> to open the setup drawer and create the first draft.
         </Card>
       ) : null}
 

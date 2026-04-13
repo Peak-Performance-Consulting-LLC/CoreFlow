@@ -42,6 +42,23 @@ export interface HangupCallParams extends TelnyxClientConfig {
   commandId?: string;
 }
 
+export interface StartNoiseSuppressionParams extends TelnyxClientConfig {
+  callControlId: string;
+  commandId?: string;
+  clientState?: string;
+  direction?: 'inbound' | 'outbound' | 'both';
+  noiseSuppressionEngine?: 'Denoiser' | 'DeepFilterNet' | 'Krisp';
+}
+
+export interface StartRecordingParams extends TelnyxClientConfig {
+  callControlId: string;
+  commandId?: string;
+  clientState?: string;
+  format?: 'wav' | 'mp3';
+  channels?: 'single' | 'dual';
+  playBeep?: boolean;
+}
+
 export class TelnyxClientError extends Error {}
 
 export class TelnyxClientConfigError extends TelnyxClientError {}
@@ -217,5 +234,40 @@ export async function hangupCall(params: HangupCallParams) {
 
   return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/hangup`, {
     ...(commandId ? { command_id: commandId } : {}),
+  });
+}
+
+export async function startNoiseSuppression(params: StartNoiseSuppressionParams) {
+  const commandId = getString(params.commandId);
+  const clientState = getString(params.clientState);
+  const direction =
+    params.direction === 'outbound' || params.direction === 'both'
+      ? params.direction
+      : 'inbound';
+  const noiseSuppressionEngine =
+    params.noiseSuppressionEngine === 'DeepFilterNet' || params.noiseSuppressionEngine === 'Krisp'
+      ? params.noiseSuppressionEngine
+      : 'Denoiser';
+
+  return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/suppression_start`, {
+    direction,
+    noise_suppression_engine: noiseSuppressionEngine,
+    ...(commandId ? { command_id: commandId } : {}),
+    ...(clientState ? { client_state: clientState } : {}),
+  });
+}
+
+export async function startRecording(params: StartRecordingParams) {
+  const commandId = getString(params.commandId);
+  const clientState = getString(params.clientState);
+  const format = params.format === 'mp3' ? 'mp3' : 'wav';
+  const channels = params.channels === 'dual' ? 'dual' : 'single';
+
+  return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/record_start`, {
+    format,
+    channels,
+    play_beep: typeof params.playBeep === 'boolean' ? params.playBeep : false,
+    ...(commandId ? { command_id: commandId } : {}),
+    ...(clientState ? { client_state: clientState } : {}),
   });
 }

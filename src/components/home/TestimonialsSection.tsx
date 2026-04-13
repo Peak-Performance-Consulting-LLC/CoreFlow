@@ -21,10 +21,10 @@ export function TestimonialsSection() {
             transition={{ duration: 0.45, delay: index * 0.06 }}
           >
             <Card className="h-full p-6">
-              <p className="text-base leading-8 text-slate-200">"{testimonial.quote}"</p>
+              <p className="text-base leading-8 text-slate-700">"{testimonial.quote}"</p>
               <div className="mt-8">
-                <div className="font-display text-lg font-semibold text-white">{testimonial.name}</div>
-                <div className="text-sm text-slate-400">{testimonial.title}</div>
+                <div className="font-display text-lg font-semibold text-slate-900">{testimonial.name}</div>
+                <div className="text-sm text-slate-600">{testimonial.title}</div>
               </div>
             </Card>
           </motion.div>

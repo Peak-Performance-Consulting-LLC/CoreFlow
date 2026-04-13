@@ -30,14 +30,14 @@ export function VoiceAgentBindingsEditor({
   return (
     <Card className="p-6">
       <div>
-        <h3 className="font-display text-2xl text-white">Ready number bindings</h3>
-        <p className="mt-2 text-sm leading-7 text-slate-400">
+        <h3 className="font-display text-2xl text-slate-900">Ready number bindings</h3>
+        <p className="mt-2 text-sm leading-7 text-slate-600">
           Bind this assistant to ready voice numbers. Only one active assistant can own a number at a time.
         </p>
       </div>
 
       {numbers.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-400">
+        <div className="mt-6 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 text-sm text-slate-600">
           No ready voice numbers are available yet. Finish Phase 1 provisioning first, then return here to activate a binding.
         </div>
       ) : (
@@ -51,11 +51,11 @@ export function VoiceAgentBindingsEditor({
             return (
               <div
                 key={number.id}
-                className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 lg:flex-row lg:items-center lg:justify-between"
+                className="flex flex-col gap-4 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 lg:flex-row lg:items-center lg:justify-between"
               >
                 <div>
-                  <div className="font-medium text-white">{number.phone_number_e164}</div>
-                  <div className="mt-2 text-sm text-slate-400">
+                  <div className="font-medium text-slate-900">{number.phone_number_e164}</div>
+                  <div className="mt-2 text-sm text-slate-600">
                     {number.label ? `${number.label} | ` : ''}
                     {isCurrentBindingActive
                       ? 'Bound to this assistant'

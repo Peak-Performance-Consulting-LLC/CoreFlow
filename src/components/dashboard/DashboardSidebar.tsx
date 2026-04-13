@@ -17,21 +17,21 @@ export function DashboardSidebar({ workspace }: { workspace: WorkspaceSummary })
   ];
 
   return (
-    <aside className="hidden w-80 shrink-0 border-r border-white/10 bg-slate-950/75 p-5 lg:flex lg:flex-col">
-      <div className="flex items-center justify-between rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-80 bg-[radial-gradient(circle_at_top_left,rgba(255,240,220,0.18),transparent_28%),linear-gradient(180deg,#B59670_0%,#9C7E58_18%,#866847_52%,#72583D_100%)] p-6 text-[#2F2418] lg:flex lg:flex-col">
+      <div className="flex items-center justify-between rounded-[28px] bg-[linear-gradient(180deg,rgba(255,252,247,0.88)_0%,rgba(246,236,221,0.72)_100%)] p-4 shadow-[0_18px_38px_rgba(54,37,19,0.16)] backdrop-blur-sm">
         <LogoMark />
-        <button className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-400">
+        <button className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(255,250,243,0.74)] text-[#5A4630] transition hover:bg-[#FFFDFC] hover:text-[#2F2418]">
           <PanelLeftClose className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="mt-6 rounded-[26px] border border-cyan-300/20 bg-cyan-300/10 p-4">
-        <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Workspace</div>
-        <div className="mt-2 font-display text-2xl text-white">{workspace.name}</div>
-        <div className="mt-2 text-sm text-cyan-100/80">{formatCrmLabel(workspace.crmType)} Mode</div>
+      <div className="mt-6 rounded-[28px] bg-[linear-gradient(165deg,rgba(255,253,249,0.86)_0%,rgba(241,227,206,0.62)_100%)] p-5 shadow-[0_20px_40px_rgba(54,37,19,0.14)]">
+        <div className="text-xs uppercase tracking-[0.32em] text-[#7A5C33]">Workspace</div>
+        <div className="mt-2 font-display text-2xl text-[#1E1B18]">{workspace.name}</div>
+        <div className="mt-2 text-sm text-[#5E5347]">{formatCrmLabel(workspace.crmType)} Mode</div>
       </div>
 
-      <nav className="mt-6 flex-1 space-y-2">
+      <nav className="mt-6 flex-1 space-y-2 rounded-[30px] bg-[linear-gradient(180deg,rgba(87,63,39,0.18)_0%,rgba(66,46,28,0.16)_100%)] p-3">
         {navItems.map((item) => {
           const Icon = item.icon;
 
@@ -42,8 +42,8 @@ export function DashboardSidebar({ workspace }: { workspace: WorkspaceSummary })
               className={({ isActive }) =>
                 `flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition ${
                   isActive
-                    ? 'bg-white/[0.08] text-white'
-                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-white'
+                    ? 'bg-[linear-gradient(135deg,#FFFDFC_0%,#F4E7D7_100%)] text-[#1E1B18] shadow-[0_18px_32px_rgba(44,29,15,0.18)]'
+                    : 'text-[rgba(255,247,236,0.92)] hover:bg-[rgba(255,250,243,0.14)] hover:text-[#FFFDFC]'
                 }`
               }
             >
@@ -53,10 +53,6 @@ export function DashboardSidebar({ workspace }: { workspace: WorkspaceSummary })
           );
         })}
       </nav>
-
-      <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-400">
-        CoreFlow is ready for the next module layer. This shell is built to grow into pipelines, automation, and analytics.
-      </div>
     </aside>
   );
 }

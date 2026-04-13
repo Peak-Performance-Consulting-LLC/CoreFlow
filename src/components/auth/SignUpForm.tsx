@@ -182,7 +182,7 @@ export function SignUpForm() {
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="text-slate-400 transition hover:text-white"
+              className="text-slate-600 transition hover:text-slate-900"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -200,7 +200,7 @@ export function SignUpForm() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((current) => !current)}
-              className="text-slate-400 transition hover:text-white"
+              className="text-slate-600 transition hover:text-slate-900"
             >
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -222,12 +222,12 @@ export function SignUpForm() {
       />
 
       <div className="space-y-3">
-        <label className="inline-flex items-start gap-3 text-sm text-slate-300">
+        <label className="inline-flex items-start gap-3 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={termsAccepted}
             onChange={(event) => setTermsAccepted(event.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-300 focus:ring-cyan-300"
+            className="mt-1 h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
           />
           <span>
             I agree to the terms, privacy expectations, and workspace ownership rules for this launch build.
@@ -240,9 +240,9 @@ export function SignUpForm() {
         Create account and workspace
       </Button>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-600">
         Already have an account?{' '}
-        <Link to="/signin" className="font-medium text-cyan-200 transition hover:text-cyan-100">
+        <Link to="/signin" className="font-medium text-accent-blue transition hover:text-accent-blue">
           Sign in
         </Link>
       </p>

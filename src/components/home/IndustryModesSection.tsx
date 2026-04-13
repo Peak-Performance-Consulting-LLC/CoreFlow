@@ -26,13 +26,13 @@ export function IndustryModesSection() {
               >
                 <Card className="relative h-full overflow-hidden p-5">
                   <div className={`absolute inset-0 bg-gradient-to-br ${crm.accent} opacity-80`} />
-                  <div className="absolute inset-[1px] rounded-[27px] bg-slate-950/90" />
+                  <div className="absolute inset-[1px] rounded-[27px] bg-[#FFFDFC]" />
                   <div className="relative">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-200">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-accent-blue">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-6 font-display text-2xl font-semibold text-white">{crm.label}</h3>
-                    <p className="mt-2 text-sm leading-7 text-slate-400">{crm.description}</p>
+                    <h3 className="mt-6 font-display text-2xl font-semibold text-slate-900">{crm.label}</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">{crm.description}</p>
                   </div>
                 </Card>
               </motion.div>

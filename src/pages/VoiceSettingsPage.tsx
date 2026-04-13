@@ -240,9 +240,9 @@ export function VoiceSettingsPage() {
         <Card className="overflow-hidden p-6">
           <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
             <div>
-              <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Voice settings</div>
-              <h1 className="mt-2 font-display text-4xl text-white">Workspace voice number foundation</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
+              <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Voice settings</div>
+              <h1 className="mt-2 font-display text-4xl text-slate-900">Workspace voice number foundation</h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
                 Provision and manage the workspace phone number through CoreFlow's managed backend. Phase 1 is limited
                 to US number inventory, owner-only access, and inbound routing compatibility with the existing Telnyx
                 webhook foundation.
@@ -250,35 +250,35 @@ export function VoiceSettingsPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
-              <div className="rounded-[26px] border border-cyan-300/20 bg-cyan-300/10 p-5">
-                <div className="flex items-center gap-3 text-cyan-100">
+              <div className="rounded-[26px] border border-[#D8CCBD] bg-[#F6EFE4] p-5">
+                <div className="flex items-center gap-3 text-[#7A5C33]">
                   <PhoneIncoming className="h-5 w-5" />
                   Active numbers
                 </div>
-                <div className="mt-4 font-display text-4xl text-white">{activeCount}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{activeCount}</div>
               </div>
 
-              <div className="rounded-[26px] border border-emerald-300/20 bg-emerald-400/10 p-5">
-                <div className="flex items-center gap-3 text-emerald-100">
+              <div className="rounded-[26px] border border-[#D8CCBD] bg-[#F5EFE5] p-5">
+                <div className="flex items-center gap-3 text-[#6C5737]">
                   <ShieldCheck className="h-5 w-5" />
                   Webhook ready
                 </div>
-                <div className="mt-4 font-display text-4xl text-white">{readyCount}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{readyCount}</div>
               </div>
 
-              <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-5">
-                <div className="flex items-center gap-3 text-slate-200">
+              <div className="rounded-[26px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
+                <div className="flex items-center gap-3 text-slate-700">
                   <Sparkles className="h-5 w-5" />
                   Managed provider
                 </div>
-              <div className="mt-4 text-sm leading-7 text-slate-400">
+              <div className="mt-4 text-sm leading-7 text-slate-600">
                   Workspace owners never manage raw provider credentials, connection IDs, or webhook configuration
                   directly.
                 </div>
                 <div className="mt-4">
                   <Link
                     to="/voice"
-                    className="inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+                    className="inline-flex items-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-2 text-sm text-slate-700 transition hover:bg-[#EFE7DC]"
                   >
                     Open Voice Ops
                   </Link>
@@ -291,7 +291,7 @@ export function VoiceSettingsPage() {
         {numbersLoading ? (
           <SectionSkeleton title="Voice numbers" rows={5} />
         ) : numbersError ? (
-          <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{numbersError}</Card>
+          <Card className="border border-[#E1B9A8] bg-[#FAEEE8] p-4 text-sm text-[#8B5A4A]">{numbersError}</Card>
         ) : (
           <VoiceNumberTable
             numbers={numbers}

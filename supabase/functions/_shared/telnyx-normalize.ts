@@ -2,6 +2,7 @@ export type TelnyxPhase1EventType =
   | 'call.initiated'
   | 'call.answered'
   | 'call.ai_gather.ended'
+  | 'call.conversation.ended'
   | 'call.hangup';
 
 export interface NormalizedTelnyxEvent {
@@ -75,6 +76,7 @@ export function isPhase1HandledEvent(eventType: string): eventType is TelnyxPhas
     eventType === 'call.initiated' ||
     eventType === 'call.answered' ||
     eventType === 'call.ai_gather.ended' ||
+    eventType === 'call.conversation.ended' ||
     eventType === 'call.hangup'
   );
 }
@@ -114,8 +116,11 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
   }
 
   const gatherResult = isRecord(payload.result) ? payload.result : null;
-  const gatherStatus = getString(payload.status) || (gatherResult ? getString(gatherResult.status) : '');
-  const messageHistory = pickArray(payload, ['message_history']);
+  const gatherStatus =
+    getString(payload.status) ||
+    getString(payload.reason) ||
+    (gatherResult ? getString(gatherResult.status) : '');
+  const messageHistory = pickArray(payload, ['message_history', 'messages']);
 
   return {
     provider: 'telnyx',
@@ -136,8 +141,10 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
 }
 
 export function extractGatherResult(event: NormalizedTelnyxEvent): GatherExtraction {
-  if (event.eventType !== 'call.ai_gather.ended') {
-    throw new MissingGatherPayloadError('Gather extraction is only valid for call.ai_gather.ended.');
+  if (event.eventType !== 'call.ai_gather.ended' && event.eventType !== 'call.conversation.ended') {
+    throw new MissingGatherPayloadError(
+      'Gather extraction is only valid for call.ai_gather.ended or call.conversation.ended.',
+    );
   }
 
   return {

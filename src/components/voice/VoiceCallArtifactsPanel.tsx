@@ -25,22 +25,22 @@ interface VoiceCallArtifactsPanelProps {
 export function VoiceCallArtifactsPanel({ call, artifacts }: VoiceCallArtifactsPanelProps) {
   return (
     <Card className="p-5">
-      <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Artifacts</div>
+      <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Artifacts</div>
       <div className="mt-4 space-y-4">
         {artifacts.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-sm text-slate-300">Raw message history</div>
-            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-400">
+          <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+            <div className="text-sm text-slate-700">Raw message history</div>
+            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">
               {call.message_history ? JSON.stringify(call.message_history, null, 2) : 'No message history stored.'}
             </pre>
           </div>
         ) : artifacts.map((artifact) => (
-          <div key={artifact.id} className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+          <div key={artifact.id} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="font-medium text-white">{artifact.artifact_type}</div>
+              <div className="font-medium text-slate-900">{artifact.artifact_type}</div>
               <div className="text-xs text-slate-500">{artifact.status}</div>
             </div>
-            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-400">
+            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">
               {renderArtifactBody(artifact)}
             </pre>
           </div>

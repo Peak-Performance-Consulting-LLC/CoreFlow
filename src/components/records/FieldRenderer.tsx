@@ -17,7 +17,7 @@ function FieldLabel({ definition }: { definition: CustomFieldDefinition }) {
     <span className="flex items-center gap-2 font-medium">
       <span>{definition.label}</span>
       {definition.is_required ? (
-        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] text-cyan-200">
+        <span className="rounded-full border border-accent-blue/25 bg-accent-blue/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] text-accent-blue">
           Required
         </span>
       ) : null}
@@ -30,7 +30,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
 
   if (definition.field_type === 'textarea') {
     return (
-      <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+      <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
         <FieldLabel definition={definition} />
         <textarea
           rows={4}
@@ -38,10 +38,10 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
           onChange={(event) => onChange(event.target.value)}
           placeholder={definition.placeholder ?? ''}
           className={cn(
-            'rounded-2xl border bg-slate-950/70 px-4 py-3 text-sm text-white placeholder:text-slate-500 transition',
+            'rounded-2xl border bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 transition',
             error
               ? 'border-rose-400/60'
-              : 'border-white/10 focus:border-cyan-300/60 focus:bg-slate-950/90',
+              : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
           )}
         />
         {error ? <span className="text-xs text-rose-300">{error}</span> : null}
@@ -52,7 +52,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
 
   if (definition.field_type === 'boolean') {
     return (
-      <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-200">
+      <label className="flex items-center justify-between rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-700">
         <div>
           <FieldLabel definition={definition} />
           {definition.help_text ? <div className="mt-1 text-xs text-slate-500">{definition.help_text}</div> : null}
@@ -61,7 +61,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
           type="checkbox"
           checked={Boolean(value)}
           onChange={(event) => onChange(event.target.checked)}
-          className="h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-300 focus:ring-cyan-300"
+          className="h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
         />
       </label>
     );
@@ -69,16 +69,16 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
 
   if (definition.field_type === 'select') {
     return (
-      <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+      <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
         <FieldLabel definition={definition} />
         <select
           value={typeof value === 'string' ? value : ''}
           onChange={(event) => onChange(event.target.value || null)}
           className={cn(
-            'h-12 rounded-2xl border bg-slate-950/70 px-4 text-sm text-white transition',
+            'h-12 rounded-2xl border bg-[#FFFDFC] px-4 text-sm text-slate-900 transition',
             error
               ? 'border-rose-400/60'
-              : 'border-white/10 focus:border-cyan-300/60 focus:bg-slate-950/90',
+              : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
           )}
         >
           <option value="">Select {definition.label}</option>
@@ -100,7 +100,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
     return (
       <div className="space-y-3">
         <div>
-          <div className="text-sm text-slate-200">
+          <div className="text-sm text-slate-700">
             <FieldLabel definition={definition} />
           </div>
           {definition.help_text ? <div className="mt-1 text-xs text-slate-500">{definition.help_text}</div> : null}
@@ -120,8 +120,8 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
                 className={cn(
                   'rounded-full border px-3 py-2 text-sm transition',
                   isSelected
-                    ? 'border-cyan-300/50 bg-cyan-300/10 text-cyan-100'
-                    : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white',
+                    ? 'border-accent-blue/40 bg-accent-blue/10 text-accent-blue'
+                    : 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700 hover:border-[#D8CCBD] hover:text-slate-900',
                 )}
               >
                 {option}
@@ -135,7 +135,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
   }
 
   return (
-    <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+    <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
       <FieldLabel definition={definition} />
       <input
         type={definition.field_type === 'number' ? 'number' : definition.field_type === 'date' ? 'date' : 'text'}
@@ -143,10 +143,10 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
         onChange={(event) => onChange(event.target.value)}
         placeholder={definition.placeholder ?? ''}
         className={cn(
-          'h-12 rounded-2xl border bg-slate-950/70 px-4 text-sm text-white placeholder:text-slate-500 transition',
+          'h-12 rounded-2xl border bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500 transition',
           error
             ? 'border-rose-400/60'
-            : 'border-white/10 focus:border-cyan-300/60 focus:bg-slate-950/90',
+            : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
         )}
       />
       {error ? <span className="text-xs text-rose-300">{error}</span> : null}

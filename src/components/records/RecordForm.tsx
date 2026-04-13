@@ -165,25 +165,25 @@ export function RecordForm({
   return (
     <Card className="p-6">
       <form className="space-y-6" onSubmit={handleSubmit}>
-        <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-300/10 p-5">
+        <div className="rounded-[24px] border border-[#D8CCBD] bg-[#F6EFE4] p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Shared record form</div>
-              <h3 className="mt-2 font-display text-3xl text-white">
+              <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Shared record form</div>
+              <h3 className="mt-2 font-display text-3xl text-slate-900">
                 {initialRecord ? 'Update record' : 'Create record'}
               </h3>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-cyan-100/80">
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-700">
                 Common lead fields stay fixed while the industry-specific fields below are pulled from workspace metadata.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 text-xs text-cyan-100/80">
-              <span className="rounded-full border border-cyan-300/20 bg-slate-950/30 px-3 py-1">
+            <div className="flex flex-wrap gap-2 text-xs text-[#7A5C33]">
+              <span className="rounded-full border border-[#D8CCBD] bg-[#FFF8EF] px-3 py-1">
                 {config.customFields.length} dynamic fields
               </span>
-              <span className="rounded-full border border-cyan-300/20 bg-slate-950/30 px-3 py-1">
+              <span className="rounded-full border border-[#D8CCBD] bg-[#FFF8EF] px-3 py-1">
                 {customCount} filled
               </span>
-              <span className="rounded-full border border-cyan-300/20 bg-slate-950/30 px-3 py-1">
+              <span className="rounded-full border border-[#D8CCBD] bg-[#FFF8EF] px-3 py-1">
                 {config.sources.length} sources
               </span>
             </div>
@@ -191,15 +191,15 @@ export function RecordForm({
         </div>
 
         {Object.keys(errors).length > 0 ? (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+          <div className="rounded-2xl border border-[#E1B9A8] bg-[#FAEEE8] px-4 py-3 text-sm text-[#8B5A4A]">
             Fix the highlighted fields before saving this record.
           </div>
         ) : null}
 
-        <section className="space-y-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+        <section className="space-y-4 rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
           <div>
-            <h4 className="font-display text-2xl text-white">Lead snapshot</h4>
-            <p className="mt-1 text-sm text-slate-400">Basic title and contact information used across every CRM mode.</p>
+            <h4 className="font-display text-2xl text-slate-900">Lead snapshot</h4>
+            <p className="mt-1 text-sm text-slate-600">Basic title and contact information used across every CRM mode.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <Input
@@ -235,12 +235,12 @@ export function RecordForm({
               onChange={(event) => setCore((current) => ({ ...current, phone: event.target.value || null }))}
               placeholder="+1 555 010 1234"
             />
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Source</span>
               <select
                 value={core.source_id ?? ''}
                 onChange={(event) => setCore((current) => ({ ...current, source_id: event.target.value || null }))}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="">Select source</option>
                 {config.sources.map((source) => (
@@ -253,13 +253,13 @@ export function RecordForm({
           </div>
         </section>
 
-        <section className="space-y-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+        <section className="space-y-4 rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
           <div>
-            <h4 className="font-display text-2xl text-white">Workflow and ownership</h4>
-            <p className="mt-1 text-sm text-slate-400">Control how the record moves through the shared pipeline.</p>
+            <h4 className="font-display text-2xl text-slate-900">Workflow and ownership</h4>
+            <p className="mt-1 text-sm text-slate-600">Control how the record moves through the shared pipeline.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Pipeline</span>
               <select
                 value={core.pipeline_id ?? ''}
@@ -271,7 +271,7 @@ export function RecordForm({
                     stage_id: firstStageForPipeline(config, nextPipelineId),
                   }));
                 }}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="">Select pipeline</option>
                 {config.pipelines.map((pipeline) => (
@@ -281,12 +281,12 @@ export function RecordForm({
                 ))}
               </select>
             </label>
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Stage</span>
               <select
                 value={core.stage_id ?? ''}
                 onChange={(event) => setCore((current) => ({ ...current, stage_id: event.target.value || null }))}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="">Select stage</option>
                 {stageOptions.map((stage) => (
@@ -297,12 +297,12 @@ export function RecordForm({
               </select>
               {errors.stage_id ? <span className="text-xs text-rose-300">{errors.stage_id}</span> : null}
             </label>
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Assignee</span>
               <select
                 value={core.assignee_user_id ?? ''}
                 onChange={(event) => setCore((current) => ({ ...current, assignee_user_id: event.target.value || null }))}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="">Unassigned</option>
                 {config.assignees.map((assignee) => (
@@ -312,13 +312,13 @@ export function RecordForm({
                 ))}
               </select>
             </label>
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Status</span>
               <select
                 value={core.status ?? ''}
                 onChange={(event) => setCore((current) => ({ ...current, status: event.target.value || null }))}
                 disabled={stageDrivesClosedState}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="open">Open</option>
                 <option value="qualified">Qualified</option>
@@ -329,12 +329,12 @@ export function RecordForm({
                 <span className="text-xs text-slate-500">Closed stages keep the record status closed automatically.</span>
               ) : null}
             </label>
-            <label className="flex w-full flex-col gap-2 text-sm text-slate-200">
+            <label className="flex w-full flex-col gap-2 text-sm text-slate-700">
               <span className="font-medium">Priority</span>
               <select
                 value={core.priority ?? ''}
                 onChange={(event) => setCore((current) => ({ ...current, priority: event.target.value || null }))}
-                className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -345,10 +345,10 @@ export function RecordForm({
         </section>
 
         {config.customFields.length > 0 ? (
-          <section className="space-y-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+          <section className="space-y-4 rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
             <div>
-              <h3 className="font-display text-2xl text-white">Industry fields</h3>
-              <p className="mt-1 text-sm text-slate-400">
+              <h3 className="font-display text-2xl text-slate-900">Industry fields</h3>
+              <p className="mt-1 text-sm text-slate-600">
                 These fields come directly from the workspace template for the selected CRM mode. No industry-specific form is hardcoded here.
               </p>
             </div>

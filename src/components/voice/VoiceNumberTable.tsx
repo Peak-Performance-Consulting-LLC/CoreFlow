@@ -16,30 +16,30 @@ interface VoiceNumberTableProps {
 
 function getProvisioningBadge(number: VoiceNumberRecord) {
   if (number.provisioning_status === 'active') {
-    return 'border-emerald-300/20 bg-emerald-400/10 text-emerald-200';
+    return 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]';
   }
 
   if (number.provisioning_status === 'pending') {
-    return 'border-amber-300/20 bg-amber-400/10 text-amber-100';
+    return 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]';
   }
 
   if (number.provisioning_status === 'failed') {
-    return 'border-rose-300/20 bg-rose-400/10 text-rose-100';
+    return 'border-[#E1B9A8] bg-[#FAEEE8] text-[#8B5A4A]';
   }
 
-  return 'border-slate-300/10 bg-white/[0.05] text-slate-300';
+  return 'border-slate-300/10 bg-[#F7F4EE] text-slate-700';
 }
 
 function getWebhookBadge(number: VoiceNumberRecord) {
   if (number.webhook_status === 'ready') {
-    return 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100';
+    return 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]';
   }
 
   if (number.webhook_status === 'failed') {
-    return 'border-rose-300/20 bg-rose-400/10 text-rose-100';
+    return 'border-[#E1B9A8] bg-[#FAEEE8] text-[#8B5A4A]';
   }
 
-  return 'border-amber-300/20 bg-amber-400/10 text-amber-100';
+  return 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]';
 }
 
 export function VoiceNumberTable({
@@ -56,12 +56,12 @@ export function VoiceNumberTable({
     return (
       <Card className="p-6">
         <div className="flex items-start gap-4">
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-cyan-100">
+          <div className="rounded-2xl border border-[#D8CCBD] bg-[#F6EFE4] p-3 text-[#7A5C33]">
             <PhoneIncoming className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display text-2xl text-white">No voice numbers yet</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-400">
+            <h3 className="font-display text-2xl text-slate-900">No voice numbers yet</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
               Search US numbers below to provision the first workspace line. Once a number is purchased and active, the
               existing inbound Telnyx webhook flow can resolve this workspace from that number.
             </p>
@@ -73,13 +73,13 @@ export function VoiceNumberTable({
 
   return (
     <Card className="overflow-hidden">
-      <div className="border-b border-white/10 px-6 py-5">
-        <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Provisioned numbers</div>
-        <h3 className="mt-2 font-display text-2xl text-white">Workspace voice inventory</h3>
+      <div className="border-b border-[#E7DED2] px-6 py-5">
+        <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Provisioned numbers</div>
+        <h3 className="mt-2 font-display text-2xl text-slate-900">Workspace voice inventory</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border-separate border-spacing-y-0 text-sm text-slate-300">
+        <table className="min-w-full border-separate border-spacing-y-0 text-sm text-slate-700">
           <thead>
             <tr className="text-left text-xs uppercase tracking-[0.24em] text-slate-500">
               <th className="px-6 py-4">Number</th>
@@ -103,12 +103,12 @@ export function VoiceNumberTable({
               const needsReconcile = number.provisioning_status !== 'active' || number.webhook_status !== 'ready';
 
               return (
-                <tr key={number.id} className="border-t border-white/10">
+                <tr key={number.id} className="border-t border-[#E7DED2]">
                   <td className="px-6 py-5 align-top">
-                    <div className="font-semibold text-white">{number.phone_number_e164}</div>
+                    <div className="font-semibold text-slate-900">{number.phone_number_e164}</div>
                     <div className="mt-1 text-xs text-slate-500">Managed workspace line</div>
                     {number.last_provisioning_error ? (
-                      <div className="mt-3 rounded-2xl border border-rose-300/20 bg-rose-400/10 px-3 py-2 text-xs leading-6 text-rose-100">
+                      <div className="mt-3 rounded-2xl border border-[#E1B9A8] bg-[#FAEEE8] px-3 py-2 text-xs leading-6 text-[#8B5A4A]">
                         {number.last_provisioning_error}
                       </div>
                     ) : null}
@@ -118,7 +118,7 @@ export function VoiceNumberTable({
                       value={draft.label}
                       onChange={(event) => onLabelChange(number.id, event.target.value)}
                       placeholder="Front desk line"
-                      className="h-11 w-full min-w-[220px] rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white placeholder:text-slate-500"
+                      className="h-11 w-full min-w-[220px] rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500"
                     />
                   </td>
                   <td className="px-6 py-5 align-top">
@@ -136,14 +136,14 @@ export function VoiceNumberTable({
                     </div>
                   </td>
                   <td className="px-6 py-5 align-top">
-                    <label className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                    <label className="inline-flex items-center gap-3 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3">
                       <input
                         type="checkbox"
                         checked={draft.is_active}
                         onChange={(event) => onActiveChange(number.id, event.target.checked)}
-                        className="h-4 w-4 rounded border-white/20 bg-slate-950/70"
+                        className="h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC]"
                       />
-                      <span className="text-sm text-white">{draft.is_active ? 'Active' : 'Paused'}</span>
+                      <span className="text-sm text-slate-900">{draft.is_active ? 'Active' : 'Paused'}</span>
                       {draft.is_active ? (
                         <CheckCircle2 className="h-4 w-4 text-emerald-300" />
                       ) : (
@@ -152,7 +152,7 @@ export function VoiceNumberTable({
                     </label>
                   </td>
                   <td className="px-6 py-5 align-top">
-                    <div className="text-sm text-white">{number.purchased_at ? new Date(number.purchased_at).toLocaleString() : 'Unknown'}</div>
+                    <div className="text-sm text-slate-900">{number.purchased_at ? new Date(number.purchased_at).toLocaleString() : 'Unknown'}</div>
                     <div className="mt-1 text-xs text-slate-500">
                       {number.webhook_status === 'ready' ? 'Inbound routing ready' : 'Inbound routing pending'}
                     </div>
@@ -160,7 +160,7 @@ export function VoiceNumberTable({
                   <td className="px-6 py-5 align-top">
                     <div className="flex items-center justify-end gap-3">
                       {number.webhook_status !== 'ready' ? (
-                        <span className="inline-flex items-center gap-2 text-xs text-amber-100">
+                        <span className="inline-flex items-center gap-2 text-xs text-[#7A5C33]">
                           <ShieldAlert className="h-4 w-4" />
                           Pending routing
                         </span>

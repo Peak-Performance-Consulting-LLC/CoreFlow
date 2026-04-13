@@ -22,18 +22,18 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="hidden rounded-[32px] border border-white/10 bg-white/[0.04] p-8 shadow-panel backdrop-blur-xl xl:flex xl:flex-col xl:justify-between"
+            className="hidden rounded-[32px] border border-[#E7DED2] bg-[#FFFDFC] p-8 shadow-panel xl:flex xl:flex-col xl:justify-between"
           >
             <div className="space-y-10">
               <LogoMark />
               <div className="space-y-4">
-                <div className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">
+                <div className="inline-flex rounded-full border border-accent-blue/25 bg-accent-blue/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-accent-blue">
                   Shared onboarding flow
                 </div>
-                <h2 className="font-display text-4xl font-semibold leading-tight text-white">
+                <h2 className="font-display text-4xl font-semibold leading-tight text-slate-900">
                   Premium entry into a multi-industry CRM platform.
                 </h2>
-                <p className="max-w-xl text-base leading-8 text-slate-300">
+                <p className="max-w-xl text-base leading-8 text-slate-700">
                   Sign in or create your account, launch your workspace, and route into the dashboard that matches your selected CRM mode.
                 </p>
               </div>
@@ -44,12 +44,12 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
                 const Icon = option.icon;
 
                 return (
-                  <div key={option.value} className="rounded-[24px] border border-white/10 bg-slate-950/70 p-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-cyan-200">
+                  <div key={option.value} className="rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-accent-blue">
                       <Icon className="h-4 w-4" />
                     </div>
-                    <h3 className="mt-4 font-display text-lg text-white">{option.label}</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-400">{option.description}</p>
+                    <h3 className="mt-4 font-display text-lg text-slate-900">{option.label}</h3>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{option.description}</p>
                   </div>
                 );
               })}
@@ -68,18 +68,18 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
                 <LogoMark />
               </div>
               <div className="space-y-4">
-                <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-300">
+                <div className="inline-flex rounded-full border border-[#E7DED2] bg-[#F7F4EE] px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-700">
                   {eyebrow}
                 </div>
                 <div>
-                  <h1 className="font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                  <h1 className="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
                     {title}
                   </h1>
-                  <p className="mt-3 max-w-2xl text-base leading-8 text-slate-400">{description}</p>
+                  <p className="mt-3 max-w-2xl text-base leading-8 text-slate-600">{description}</p>
                 </div>
               </div>
               {children}
-              <div className="border-t border-white/10 pt-6 text-sm text-slate-400">{footer}</div>
+              <div className="border-t border-[#E7DED2] pt-6 text-sm text-slate-600">{footer}</div>
             </div>
           </motion.div>
         </div>

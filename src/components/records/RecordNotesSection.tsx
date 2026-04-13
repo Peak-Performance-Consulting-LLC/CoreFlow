@@ -33,8 +33,8 @@ export function RecordNotesSection({ notes, onAddNote }: RecordNotesSectionProps
     <Card className="p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-display text-2xl text-white">Notes</h3>
-          <p className="mt-1 text-sm text-slate-400">Capture context and conversation updates.</p>
+          <h3 className="font-display text-2xl text-slate-900">Notes</h3>
+          <p className="mt-1 text-sm text-slate-600">Capture context and conversation updates.</p>
         </div>
       </div>
 
@@ -44,7 +44,7 @@ export function RecordNotesSection({ notes, onAddNote }: RecordNotesSectionProps
           value={body}
           onChange={(event) => setBody(event.target.value)}
           placeholder="Add a new note"
-          className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white placeholder:text-slate-500"
+          className="w-full rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
         />
         <div className="flex justify-end">
           <Button type="submit" size="sm" loading={submitting}>
@@ -55,13 +55,13 @@ export function RecordNotesSection({ notes, onAddNote }: RecordNotesSectionProps
 
       <div className="mt-6 space-y-3">
         {notes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
             No notes yet. Add the first context note for this record.
           </div>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="text-sm leading-7 text-slate-200">{note.body}</div>
+            <div key={note.id} className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+              <div className="text-sm leading-7 text-slate-700">{note.body}</div>
               <div className="mt-2 text-xs text-slate-500">{new Date(note.created_at).toLocaleString()}</div>
             </div>
           ))

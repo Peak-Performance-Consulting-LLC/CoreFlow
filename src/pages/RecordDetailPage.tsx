@@ -195,17 +195,17 @@ export function RecordDetailPage() {
     <WorkspaceLayout workspace={workspace} onSignOut={handleSignOut}>
       <div className="space-y-6">
         <div>
-          <Link to="/records" className="text-sm text-cyan-200 transition hover:text-cyan-100">
+          <Link to="/records" className="text-sm text-accent-blue transition hover:text-accent-blue">
             Back to records
           </Link>
-          <h2 className="mt-2 font-display text-4xl text-white">{visibleDetail?.record.title ?? 'Record details'}</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-400">
+          <h2 className="mt-2 font-display text-4xl text-slate-900">{visibleDetail?.record.title ?? 'Record details'}</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
             Edit fixed fields, dynamic metadata fields, stage, notes, tasks, and timeline in one shared view.
           </p>
         </div>
 
         {configRefreshing || detailRefreshing ? (
-          <Card className="p-4 text-sm text-slate-400">Refreshing record data in the background...</Card>
+          <Card className="p-4 text-sm text-slate-600">Refreshing record data in the background...</Card>
         ) : null}
 
         {configError && !config ? (
@@ -221,25 +221,25 @@ export function RecordDetailPage() {
             <div className="grid gap-4 lg:grid-cols-4">
               <Card className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Stage</div>
-                <div className="mt-3 font-display text-2xl text-white">
+                <div className="mt-3 font-display text-2xl text-slate-900">
                   {findStageName(config, visibleDetail.record.stage_id)}
                 </div>
               </Card>
               <Card className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Source</div>
-                <div className="mt-3 font-display text-2xl text-white">
+                <div className="mt-3 font-display text-2xl text-slate-900">
                   {findSourceName(config, visibleDetail.record.source_id)}
                 </div>
               </Card>
               <Card className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Assignee</div>
-                <div className="mt-3 font-display text-2xl text-white">
+                <div className="mt-3 font-display text-2xl text-slate-900">
                   {findAssigneeName(config, visibleDetail.record.assignee_user_id)}
                 </div>
               </Card>
               <Card className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Updated</div>
-                <div className="mt-3 text-sm leading-7 text-slate-300">
+                <div className="mt-3 text-sm leading-7 text-slate-700">
                   {new Date(visibleDetail.record.updated_at).toLocaleString()}
                 </div>
               </Card>
@@ -249,13 +249,13 @@ export function RecordDetailPage() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <div className="text-xs uppercase tracking-[0.28em] text-slate-500">Quick stage move</div>
-                  <h3 className="mt-2 font-display text-2xl text-white">Current stage</h3>
+                  <h3 className="mt-2 font-display text-2xl text-slate-900">Current stage</h3>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <select
                     value={selectedStageId}
                     onChange={(event) => setSelectedStageId(event.target.value)}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                   >
                     <option value="">Select stage</option>
                     {stageOptions.map((stage) => (

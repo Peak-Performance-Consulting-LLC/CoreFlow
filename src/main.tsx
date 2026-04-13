@@ -15,11 +15,11 @@ ReactDOM.createRoot(document.getElementById('app')!).render(
           expand
           position="top-right"
           richColors
-          theme="dark"
+          theme="light"
           toastOptions={{
             classNames: {
               toast:
-                'border border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl shadow-cyan-500/10',
+                'border border-[#E7DED2] bg-[#FFFDFC] text-slate-900 shadow-[0_18px_40px_rgba(74,55,31,0.08)]',
             },
           }}
         />

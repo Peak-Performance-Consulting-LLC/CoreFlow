@@ -67,22 +67,22 @@ export function VoiceNumberPurchaseDrawer({
         type="button"
         aria-label="Close voice number purchase drawer"
         onClick={onClose}
-        className={`absolute inset-0 bg-slate-950/70 transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-[#FFFDFC] transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside
-        className={`absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col border-l border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-2xl flex-col border-l border-[#E7DED2] bg-[#F7F4EE] shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="voice-number-purchase-title"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#E7DED2] px-5 py-4 sm:px-6">
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Provision number</div>
-            <h2 id="voice-number-purchase-title" className="mt-2 truncate font-display text-2xl text-white">
+            <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Provision number</div>
+            <h2 id="voice-number-purchase-title" className="mt-2 truncate font-display text-2xl text-slate-900">
               Confirm workspace number
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-600">
               CoreFlow will provision this number through the managed backend and attach it to the workspace routing
               foundation.
             </p>
@@ -90,7 +90,7 @@ export function VoiceNumberPurchaseDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-slate-700 transition hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -99,20 +99,20 @@ export function VoiceNumberPurchaseDrawer({
         <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
           {result ? (
             <div className="space-y-5">
-              <div className="rounded-[28px] border border-cyan-300/20 bg-cyan-300/10 p-5">
+              <div className="rounded-[28px] border border-[#D8CCBD] bg-[#F6EFE4] p-5">
                 <div className="flex items-start gap-3">
-                  <div className="mt-1 rounded-2xl border border-cyan-300/20 bg-slate-950/40 p-2 text-cyan-100">
+                  <div className="mt-1 rounded-2xl border border-[#D8CCBD] bg-[#FFFDFC] p-2 text-[#7A5C33]">
                     <PhoneIncoming className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate font-display text-3xl text-white">{result.phoneNumber}</h3>
-                    <p className="mt-1 text-sm text-cyan-100/80">
+                    <h3 className="truncate font-display text-3xl text-slate-900">{result.phoneNumber}</h3>
+                    <p className="mt-1 text-sm text-slate-700">
                       {formatLocation(result)} • {result.phoneNumberType ?? 'standard'}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 text-sm text-cyan-100/80 sm:grid-cols-2">
+                <div className="mt-4 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
                   <div>Monthly cost: {result.monthlyCost ?? 'Unknown'}</div>
                   <div>Upfront cost: {result.upfrontCost ?? 'Unknown'}</div>
                   <div>Quickship: {result.quickship ? 'Yes' : 'No'}</div>
@@ -120,17 +120,17 @@ export function VoiceNumberPurchaseDrawer({
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+              <div className="rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">Workspace label</span>
                   <input
                     value={label}
                     onChange={(event) => setLabel(event.target.value)}
                     placeholder="Front desk line"
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white placeholder:text-slate-500"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500"
                   />
                 </label>
-                <p className="mt-3 text-sm leading-6 text-slate-400">
+                <p className="mt-3 text-sm leading-6 text-slate-600">
                   Provider-side setup stays fully managed by CoreFlow. Workspace owners only see the product-facing
                   number management flow here.
                 </p>
@@ -139,7 +139,7 @@ export function VoiceNumberPurchaseDrawer({
           ) : null}
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-white/10 px-4 py-4 sm:px-6">
+        <div className="flex justify-end gap-3 border-t border-[#E7DED2] px-4 py-4 sm:px-6">
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>

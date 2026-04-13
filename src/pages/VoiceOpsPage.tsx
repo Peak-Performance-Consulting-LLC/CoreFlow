@@ -206,9 +206,9 @@ export function VoiceOpsPage() {
         <Card className="overflow-hidden p-6">
           <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
             <div>
-              <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">Voice operations</div>
-              <h1 className="mt-2 font-display text-4xl text-white">No missed inbound calls</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
+              <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Voice operations</div>
+              <h1 className="mt-2 font-display text-4xl text-slate-900">No missed inbound calls</h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
                 Inspect every inbound call, follow review-needed outcomes, retry lead creation safely, and trace the
                 webhook-to-CRM path without leaving the workspace.
               </p>
@@ -218,7 +218,7 @@ export function VoiceOpsPage() {
                   Refresh queue
                 </Button>
                 {isOwner ? (
-                  <Link to="/settings/voice" className="inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10">
+                  <Link to="/settings/voice" className="inline-flex items-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-2 text-sm text-slate-700 transition hover:bg-[#EFE7DC]">
                     Open voice settings
                   </Link>
                 ) : null}
@@ -226,27 +226,27 @@ export function VoiceOpsPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
-              <div className="rounded-[26px] border border-cyan-300/20 bg-cyan-300/10 p-5">
-                <div className="flex items-center gap-3 text-cyan-100">
+              <div className="rounded-[26px] border border-[#D8CCBD] bg-[#F6EFE4] p-5">
+                <div className="flex items-center gap-3 text-[#7A5C33]">
                   <PhoneCall className="h-5 w-5" />
                   Calls loaded
                 </div>
-                <div className="mt-4 font-display text-4xl text-white">{listData?.calls.length ?? 0}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{listData?.calls.length ?? 0}</div>
               </div>
-              <div className="rounded-[26px] border border-amber-300/20 bg-amber-400/10 p-5">
-                <div className="flex items-center gap-3 text-amber-100">
+              <div className="rounded-[26px] border border-[#D9C39D] bg-[#FAF3E6] p-5">
+                <div className="flex items-center gap-3 text-[#7A5C33]">
                   <AlertTriangle className="h-5 w-5" />
                   Open review
                 </div>
-                <div className="mt-4 font-display text-4xl text-white">{openReviewCount}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{openReviewCount}</div>
               </div>
-              <div className="rounded-[26px] border border-emerald-300/20 bg-emerald-400/10 p-5">
-                <div className="flex items-center gap-3 text-emerald-100">
+              <div className="rounded-[26px] border border-[#D8CCBD] bg-[#F5EFE5] p-5">
+                <div className="flex items-center gap-3 text-[#6C5737]">
                   <Waves className="h-5 w-5" />
                   Leads created
                 </div>
-                <div className="mt-4 font-display text-4xl text-white">{leadCount}</div>
-                <div className="mt-2 text-xs text-emerald-100/80">Other non-success outcomes in view: {failedCount}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{leadCount}</div>
+                <div className="mt-2 text-xs text-[#6C5737]">Other non-success outcomes in view: {failedCount}</div>
               </div>
             </div>
           </div>

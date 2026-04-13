@@ -52,30 +52,30 @@ function formatStatusLabel(status: string | null | undefined) {
 function pillStyles(tone: 'neutral' | 'type' | 'source' | 'stage' | 'closed' | 'status') {
   switch (tone) {
     case 'type':
-      return 'border-indigo-300/20 bg-indigo-300/10 text-indigo-100';
+      return 'border-[#D5C3A3] bg-[#F5EFE4] text-[#6A5840]';
     case 'source':
-      return 'border-white/10 bg-white/[0.04] text-slate-200';
+      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
     case 'stage':
-      return 'border-sky-300/20 bg-sky-300/10 text-sky-100';
+      return 'border-[#D8C09C] bg-[#F4EEE5] text-[#6E4C2F]';
     case 'closed':
-      return 'border-emerald-300/20 bg-emerald-300/10 text-emerald-100';
+      return 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]';
     case 'status':
-      return 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100';
+      return 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]';
     default:
-      return 'border-white/10 bg-white/[0.04] text-slate-300';
+      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
   }
 }
 
 function followUpStyles(tone: ReturnType<typeof getRecordFollowUpSummary>['tone']) {
   switch (tone) {
     case 'overdue':
-      return 'border-rose-300/30 bg-rose-300/10 text-rose-100';
+      return 'border-[#E1B9A8] bg-[#FAEEE8] text-[#8B5A4A]';
     case 'today':
-      return 'border-amber-300/30 bg-amber-300/10 text-amber-100';
+      return 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]';
     case 'pending':
-      return 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100';
+      return 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]';
     default:
-      return 'border-white/10 bg-white/[0.04] text-slate-300';
+      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
   }
 }
 
@@ -162,7 +162,7 @@ function RowActionsMenu({
           event.stopPropagation();
           setOpen((current) => !current);
         }}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-300 transition hover:border-cyan-300/30 hover:bg-white/[0.08] hover:text-white"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E7DED2] bg-[#FFFDFC] text-slate-700 transition hover:border-[#D8CCBD] hover:bg-[#F7F4EE] hover:text-slate-900"
       >
         <Ellipsis className="h-4 w-4" />
       </button>
@@ -170,7 +170,7 @@ function RowActionsMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-12 z-30 w-56 rounded-[24px] border border-white/10 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/40 backdrop-blur-xl"
+          className="absolute right-0 top-12 z-30 w-56 rounded-[24px] border border-[#E7DED2] bg-[#F7F4EE] p-2 shadow-2xl shadow-slate-950/40 backdrop-blur-xl"
         >
           <div className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             Actions
@@ -189,9 +189,9 @@ function RowActionsMenu({
                     setOpen(false);
                     action.onSelect();
                   }}
-                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-[#F7F4EE] hover:text-slate-900"
                 >
-                  <Icon className="h-4 w-4 text-slate-400" />
+                  <Icon className="h-4 w-4 text-slate-600" />
                   <span>{action.label}</span>
                 </button>
               );
@@ -230,38 +230,38 @@ export function RecordListItem({
     <div
       className={cn(
         recordListGridClassName,
-        'group border-b border-white/10 px-5 py-4 text-sm transition duration-150 hover:bg-white/[0.03]',
+        'group border-b border-[#E7DED2] px-5 py-4 text-sm transition duration-150 hover:bg-[#FFFDFC]',
       )}
     >
       <div className="min-w-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 text-sm font-semibold text-cyan-100">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent-blue/25 bg-accent-blue/10 text-sm font-semibold text-accent-blue">
             {identity.initials}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 to={`/records/${record.id}`}
-                className="truncate text-sm font-semibold text-white transition group-hover:text-cyan-100"
+                className="truncate text-sm font-semibold text-slate-900 transition group-hover:text-accent-blue"
               >
                 {identity.title}
               </Link>
               {identity.supportingTag ? (
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[11px] text-slate-300">
+                <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-2 py-1 text-[11px] text-slate-700">
                   {identity.supportingTag}
                 </span>
               ) : null}
             </div>
-            <div className="mt-1 truncate text-sm text-slate-400">{identity.subtitle}</div>
+            <div className="mt-1 truncate text-sm text-slate-600">{identity.subtitle}</div>
             <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
               <span className={cn('rounded-full border px-2 py-1 font-medium', pillStyles('status'))}>
                 {statusLabel}
               </span>
-              <span className={cn('rounded-full border px-2 py-1 text-slate-300', pillStyles('neutral'))}>
+              <span className={cn('rounded-full border px-2 py-1 text-slate-700', pillStyles('neutral'))}>
                 Owner: {ownerName}
               </span>
               {(record.open_task_count ?? 0) > 0 ? (
-                <span className={cn('rounded-full border px-2 py-1 text-slate-300', pillStyles('neutral'))}>
+                <span className={cn('rounded-full border px-2 py-1 text-slate-700', pillStyles('neutral'))}>
                   {record.open_task_count} open task{record.open_task_count === 1 ? '' : 's'}
                 </span>
               ) : null}
@@ -272,7 +272,7 @@ export function RecordListItem({
 
       <div className="min-w-0">
         {phone ? (
-          <a href={`tel:${phone}`} className="text-sm font-medium text-slate-200 transition hover:text-cyan-100">
+          <a href={`tel:${phone}`} className="text-sm font-medium text-slate-700 transition hover:text-accent-blue">
             {phone}
           </a>
         ) : (
@@ -306,7 +306,7 @@ export function RecordListItem({
       </div>
 
       <div className="min-w-0">
-        <div className="text-sm font-medium text-slate-200">{formatRecordCreatedDate(record.created_at)}</div>
+        <div className="text-sm font-medium text-slate-700">{formatRecordCreatedDate(record.created_at)}</div>
         <div className="mt-1 text-xs text-slate-500">Updated {formatRelativeDateTime(record.updated_at)}</div>
       </div>
 
@@ -314,7 +314,7 @@ export function RecordListItem({
         <Link
           to={followUpHref}
           aria-label={`Open follow-up details for ${record.title}`}
-          className="group/followup block rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 transition hover:border-cyan-300/30 hover:bg-cyan-300/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40"
+          className="group/followup block rounded-[20px] border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 transition hover:border-[#D8CCBD] hover:bg-[#F7F4EE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/30"
         >
           <div className="flex items-start justify-between gap-3">
             <span
@@ -325,12 +325,12 @@ export function RecordListItem({
             >
               {followUp.label}
             </span>
-            <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition group-hover/followup:text-cyan-100" />
+            <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition group-hover/followup:text-accent-blue" />
           </div>
-          <div className="mt-2 truncate text-sm font-medium text-white transition group-hover/followup:text-cyan-50">
+          <div className="mt-2 truncate text-sm font-medium text-slate-900 transition group-hover/followup:text-slate-900">
             {followUp.taskTitle}
           </div>
-          <div className="mt-1 text-xs text-slate-400">{followUp.detail}</div>
+          <div className="mt-1 text-xs text-slate-600">{followUp.detail}</div>
           <div className="mt-2 text-xs text-slate-500">
             Last activity {formatRelativeDateTime(record.last_activity_at ?? record.updated_at)}
           </div>

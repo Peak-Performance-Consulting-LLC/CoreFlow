@@ -37,13 +37,13 @@ export function HowItWorksSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.45, delay: index * 0.06 }}
-            className="relative rounded-[28px] border border-white/10 bg-white/[0.04] p-6"
+            className="relative rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] p-6"
           >
-            <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 font-display text-lg font-semibold text-cyan-200">
+            <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-blue/25 bg-accent-blue/10 font-display text-lg font-semibold text-accent-blue">
               0{index + 1}
             </div>
-            <h3 className="font-display text-2xl font-semibold text-white">{step.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-slate-400">{step.description}</p>
+            <h3 className="font-display text-2xl font-semibold text-slate-900">{step.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-600">{step.description}</p>
           </motion.div>
         ))}
       </div>

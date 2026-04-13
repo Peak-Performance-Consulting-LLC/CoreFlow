@@ -149,26 +149,26 @@ function toneStyles(tone: ActivityTone) {
     case 'success':
       return {
         rail: 'bg-emerald-300/25',
-        icon: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100',
-        badge: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100',
+        icon: 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]',
+        badge: 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]',
       };
     case 'warning':
       return {
         rail: 'bg-amber-300/25',
-        icon: 'border-amber-300/25 bg-amber-300/10 text-amber-100',
-        badge: 'border-amber-300/25 bg-amber-300/10 text-amber-100',
+        icon: 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]',
+        badge: 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]',
       };
     case 'accent':
       return {
-        rail: 'bg-cyan-300/25',
-        icon: 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100',
-        badge: 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100',
+        rail: 'bg-[#E7DED2]',
+        icon: 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]',
+        badge: 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]',
       };
     default:
       return {
-        rail: 'bg-white/10',
-        icon: 'border-white/10 bg-white/[0.04] text-slate-200',
-        badge: 'border-white/10 bg-white/[0.04] text-slate-300',
+        rail: 'bg-[#EFE7DC]',
+        icon: 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700',
+        badge: 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700',
       };
   }
 }
@@ -349,13 +349,13 @@ export function RecordActivityTimeline({
   return (
     <Card className="p-6">
       <div>
-        <h3 className="font-display text-2xl text-white">Activity timeline</h3>
-        <p className="mt-1 text-sm text-slate-400">Readable, server-written lifecycle history for this record.</p>
+        <h3 className="font-display text-2xl text-slate-900">Activity timeline</h3>
+        <p className="mt-1 text-sm text-slate-600">Readable, server-written lifecycle history for this record.</p>
       </div>
 
       <div className="mt-6 space-y-4">
         {activities.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
             No timeline activity yet.
           </div>
         ) : (
@@ -381,11 +381,11 @@ export function RecordActivityTimeline({
                   <Icon className="h-5 w-5" />
                 </div>
 
-                <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+                <div className="rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-semibold text-white">{presentation.title}</div>
+                        <div className="font-semibold text-slate-900">{presentation.title}</div>
                         <span
                           className={cn(
                             'rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]',
@@ -395,8 +395,8 @@ export function RecordActivityTimeline({
                           {formatActivityLabel(activity.activity_type)}
                         </span>
                       </div>
-                      <p className="mt-2 text-sm leading-7 text-slate-200">{presentation.summary}</p>
-                      {presentation.detail ? <div className="mt-2 text-sm text-slate-400">{presentation.detail}</div> : null}
+                      <p className="mt-2 text-sm leading-7 text-slate-700">{presentation.summary}</p>
+                      {presentation.detail ? <div className="mt-2 text-sm text-slate-600">{presentation.detail}</div> : null}
                     </div>
 
                     <div className="shrink-0 text-xs text-slate-500">{formatRelativeDateTime(activity.created_at)}</div>
@@ -404,8 +404,8 @@ export function RecordActivityTimeline({
 
                   <div className="mt-4 text-xs uppercase tracking-[0.2em] text-slate-500">{footerParts.join(' - ')}</div>
 
-                  <details className="mt-4 group rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-300 transition hover:text-white">
+                  <details className="mt-4 group rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-3">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-700 transition hover:text-slate-900">
                       <span>Event details</span>
                       <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
                     </summary>
@@ -413,17 +413,17 @@ export function RecordActivityTimeline({
                       {presentation.details.map((row) => (
                         <div
                           key={`${activity.id}-${row.label}`}
-                          className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                          className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3"
                         >
                           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{row.label}</div>
-                          <div className="mt-2 text-sm leading-6 text-slate-200">{row.value}</div>
+                          <div className="mt-2 text-sm leading-6 text-slate-700">{row.value}</div>
                         </div>
                       ))}
                     </div>
 
                     {hasMetadata(activity.meta) ? (
-                      <details className="mt-4 group rounded-2xl border border-white/8 bg-slate-950/65 px-4 py-3">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-400 transition hover:text-slate-200">
+                      <details className="mt-4 group rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-3">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-600 transition hover:text-slate-700">
                           <span>Technical details</span>
                           <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
                         </summary>

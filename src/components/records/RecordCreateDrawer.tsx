@@ -75,29 +75,29 @@ export function RecordCreateDrawer({
         type="button"
         aria-label="Close record creator"
         onClick={onClose}
-        className={`absolute inset-0 bg-slate-950/70 transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-[#FFFDFC] transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside
-        className={`absolute inset-y-0 right-0 flex w-full max-w-4xl flex-col border-l border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-4xl flex-col border-l border-[#E7DED2] bg-[#F7F4EE] shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="record-create-drawer-title"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[#E7DED2] px-5 py-4 sm:px-6">
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-[0.28em] text-cyan-200">New record</div>
-            <h2 id="record-create-drawer-title" className="mt-2 truncate font-display text-2xl text-white">
+            <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">New record</div>
+            <h2 id="record-create-drawer-title" className="mt-2 truncate font-display text-2xl text-slate-900">
               Create record
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-600">
               Add a new lead from the shared queue without leaving the records workspace.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-slate-700 transition hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>

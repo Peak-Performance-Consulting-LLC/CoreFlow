@@ -432,7 +432,7 @@ export function RecordsPage() {
             <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
               {formatCrmLabel(workspace.crmType)} work queue
             </div>
-            <h2 className="mt-2 font-display text-4xl text-white">Records</h2>
+            <h2 className="mt-2 font-display text-4xl text-slate-900">Records</h2>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link to="/imports" className={buttonStyles('secondary', 'sm')}>
@@ -445,7 +445,7 @@ export function RecordsPage() {
         </div>
 
         {configRefreshing ? (
-          <Card className="p-4 text-sm text-slate-400">Refreshing workspace config in the background...</Card>
+          <Card className="p-4 text-sm text-slate-600">Refreshing workspace config in the background...</Card>
         ) : null}
 
         {configError && !config ? (
@@ -457,8 +457,8 @@ export function RecordsPage() {
             {metrics.map((metric) => (
               <Card key={metric.label} className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">{metric.label}</div>
-                <div className="mt-3 font-display text-4xl text-white">{metric.value}</div>
-                <p className="mt-2 text-sm text-slate-400">{metric.hint}</p>
+                <div className="mt-3 font-display text-4xl text-slate-900">{metric.value}</div>
+                <p className="mt-2 text-sm text-slate-600">{metric.hint}</p>
               </Card>
             ))}
           </div>
@@ -474,10 +474,10 @@ export function RecordsPage() {
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <h3 className="font-display text-2xl text-white">Daily queue filters</h3>
+                  <h3 className="font-display text-2xl text-slate-900">Daily queue filters</h3>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-slate-300">
+                  <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1 text-slate-700">
                     {hasActiveFilters ? `${activeFilterChips.length} active filters` : 'All records'}
                   </span>
                   <button
@@ -486,7 +486,7 @@ export function RecordsPage() {
                       setFilters(defaultFilters);
                       setPage(defaultPage);
                     }}
-                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-slate-300 transition hover:text-white"
+                    className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1 text-slate-700 transition hover:text-slate-900"
                   >
                     Reset filters
                   </button>
@@ -503,7 +503,7 @@ export function RecordsPage() {
                       }))
                     }
                     placeholder="Search title, contact, company, email"
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white placeholder:text-slate-500"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500"
                   />
                 <select
                   value={filters.stage_id ?? ''}
@@ -513,7 +513,7 @@ export function RecordsPage() {
                       stage_id: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                 >
                   <option value="">All stages</option>
                   {config.pipelines.flatMap((pipeline) =>
@@ -532,7 +532,7 @@ export function RecordsPage() {
                       source_id: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                 >
                   <option value="">All sources</option>
                   {config.sources.map((source) => (
@@ -546,7 +546,7 @@ export function RecordsPage() {
                   onChange={(event) =>
                     updateFilters((current) => ({ ...current, assignee_user_id: event.target.value || null }))
                   }
-                  className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                 >
                   <option value="">All owners</option>
                   {config.assignees.map((assignee) => (
@@ -563,7 +563,7 @@ export function RecordsPage() {
                       status: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                 >
                   <option value="">All statuses</option>
                   <option value="open">Open</option>
@@ -585,7 +585,7 @@ export function RecordsPage() {
                           [chip.key]: chip.key === 'search' ? '' : null,
                         }))
                       }
-                      className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100 transition hover:border-cyan-200/40"
+                      className="rounded-full border border-accent-blue/25 bg-accent-blue/10 px-3 py-1 text-xs text-accent-blue transition hover:border-cyan-200/40"
                     >
                       {chip.label}: {chip.value} x
                     </button>

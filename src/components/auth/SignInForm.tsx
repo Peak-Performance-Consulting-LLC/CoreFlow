@@ -106,7 +106,7 @@ export function SignInForm() {
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="text-slate-400 transition hover:text-white"
+              className="text-slate-600 transition hover:text-slate-900"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -115,19 +115,19 @@ export function SignInForm() {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <label className="inline-flex items-center gap-3 text-sm text-slate-300">
+        <label className="inline-flex items-center gap-3 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={rememberMe}
             onChange={(event) => setRememberMe(event.target.checked)}
-            className="h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-300 focus:ring-cyan-300"
+            className="h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
           />
           Remember me
         </label>
         <button
           type="button"
           onClick={() => toast.info('Password reset UI is next on the roadmap.')}
-          className="text-sm text-cyan-200 transition hover:text-cyan-100"
+          className="text-sm text-accent-blue transition hover:text-accent-blue"
         >
           Forgot password?
         </button>
@@ -137,9 +137,9 @@ export function SignInForm() {
         Sign In
       </Button>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-600">
         New to CoreFlow?{' '}
-        <Link to="/signup" className="font-medium text-cyan-200 transition hover:text-cyan-100">
+        <Link to="/signup" className="font-medium text-accent-blue transition hover:text-accent-blue">
           Create your account
         </Link>
       </p>

@@ -55,49 +55,49 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
   return (
     <Card className="p-6">
       <div>
-        <h3 className="font-display text-2xl text-white">Linked tasks</h3>
-        <p className="mt-1 text-sm text-slate-400">Create operational follow-ups tied to this record.</p>
+        <h3 className="font-display text-2xl text-slate-900">Linked tasks</h3>
+        <p className="mt-1 text-sm text-slate-600">Create operational follow-ups tied to this record.</p>
       </div>
 
       <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
         <Input label="Task title" value={title} onChange={(event) => setTitle(event.target.value)} />
-        <label className="flex flex-col gap-2 text-sm text-slate-200">
+        <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">Description</span>
           <textarea
             rows={3}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white"
+            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
           />
         </label>
         <div className="grid gap-4 md:grid-cols-3">
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Priority</span>
             <select
               value={priority}
               onChange={(event) => setPriority(event.target.value)}
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Due date</span>
             <input
               type="datetime-local"
               value={dueAt}
               onChange={(event) => setDueAt(event.target.value)}
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm text-slate-200">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Assign to</span>
             <select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
-              className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
             >
               <option value="">Unassigned</option>
               {assignees.map((assignee) => (
@@ -117,20 +117,20 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
 
       <div className="mt-6 space-y-3">
         {tasks.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
             No linked tasks yet. Create a follow-up to anchor the next action.
           </div>
         ) : (
           tasks.map((task) => (
-            <div key={task.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div key={task.id} className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="font-medium text-white">{task.title}</div>
-                  {task.description ? <div className="mt-1 text-sm text-slate-400">{task.description}</div> : null}
+                  <div className="font-medium text-slate-900">{task.title}</div>
+                  {task.description ? <div className="mt-1 text-sm text-slate-600">{task.description}</div> : null}
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-slate-300">{task.status}</span>
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-slate-300">{task.priority}</span>
+                  <span className="rounded-full border border-[#E7DED2] px-3 py-1 text-slate-700">{task.status}</span>
+                  <span className="rounded-full border border-[#E7DED2] px-3 py-1 text-slate-700">{task.priority}</span>
                 </div>
               </div>
             </div>

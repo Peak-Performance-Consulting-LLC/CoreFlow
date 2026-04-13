@@ -142,26 +142,26 @@ export function ImportsPage() {
       <div className="space-y-6">
         <div>
           <div className="text-xs uppercase tracking-[0.28em] text-slate-500">Imports scaffold</div>
-          <h2 className="mt-2 font-display text-4xl text-white">Import jobs</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
+          <h2 className="mt-2 font-display text-4xl text-slate-900">Import jobs</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
             This first pass creates import jobs, stores preview rows and mappings, and leaves execution for the next phase.
           </p>
         </div>
 
         {configRefreshing ? (
-          <Card className="p-4 text-sm text-slate-400">Refreshing import metadata in the background...</Card>
+          <Card className="p-4 text-sm text-slate-600">Refreshing import metadata in the background...</Card>
         ) : null}
 
         {config ? (
           <Card className="p-6">
             <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
+              <label className="flex flex-col gap-2 text-sm text-slate-700">
                 <span className="font-medium">CSV file</span>
                 <input
                   type="file"
                   accept=".csv,text/csv"
                   onChange={(event) => void handleFileChange(event)}
-                  className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white"
+                  className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
                 />
               </label>
               <Button
@@ -184,15 +184,15 @@ export function ImportsPage() {
 
         {config && columns.length > 0 ? (
           <Card className="p-6">
-            <h3 className="font-display text-2xl text-white">Column mapping</h3>
+            <h3 className="font-display text-2xl text-slate-900">Column mapping</h3>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {columns.map((column) => (
-                <label key={column} className="flex flex-col gap-2 text-sm text-slate-200">
+                <label key={column} className="flex flex-col gap-2 text-sm text-slate-700">
                   <span className="font-medium">{column}</span>
                   <select
                     value={currentMappingValue(column)}
                     onChange={(event) => updateMapping(column, event.target.value)}
-                    className="h-12 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-sm text-white"
+                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
                   >
                     {mappingOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -208,8 +208,8 @@ export function ImportsPage() {
 
         {config && previewRows.length > 0 ? (
           <Card className="overflow-x-auto p-6">
-            <h3 className="font-display text-2xl text-white">Preview rows</h3>
-            <table className="mt-6 min-w-full border-separate border-spacing-y-2 text-sm text-slate-300">
+            <h3 className="font-display text-2xl text-slate-900">Preview rows</h3>
+            <table className="mt-6 min-w-full border-separate border-spacing-y-2 text-sm text-slate-700">
               <thead>
                 <tr>
                   {columns.map((column) => (
@@ -223,7 +223,7 @@ export function ImportsPage() {
                 {previewRows.slice(0, 8).map((row, index) => (
                   <tr key={index}>
                     {columns.map((column) => (
-                      <td key={column} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+                      <td key={column} className="rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 py-2">
                         {row[column]}
                       </td>
                     ))}
