@@ -249,12 +249,18 @@ export async function startAIAssistant(params: StartAIAssistantParams) {
     throw new TelnyxClientConfigError('assistantId is required.');
   }
 
+  // Telnyx ai_assistant_start expects `ai_assistant_id` at the top level.
+  // Overrides (greeting, voice, transcription) go inside a separate `assistant` key.
+  const assistantOverrides = isRecord(params.assistantOverrides) && Object.keys(params.assistantOverrides).length > 0
+    ? params.assistantOverrides
+    : undefined;
+
   return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/ai_assistant_start`, {
-    assistant: {
-      id: assistantId,
-      ...(isRecord(params.assistantOverrides) ? params.assistantOverrides : {}),
-    },
-    ...(Array.isArray(params.messageHistory) ? { message_history: params.messageHistory } : {}),
+    ai_assistant_id: assistantId,
+    ...(assistantOverrides ? { assistant: assistantOverrides } : {}),
+    ...(Array.isArray(params.messageHistory) && params.messageHistory.length > 0
+      ? { message_history: params.messageHistory }
+      : {}),
     ...(typeof params.sendMessageHistoryUpdates === 'boolean'
       ? { send_message_history_updates: params.sendMessageHistoryUpdates }
       : {}),
