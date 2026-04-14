@@ -24,6 +24,10 @@ export interface VoiceAgentPayloadInput {
   source_id?: string | null;
   fallback_mode?: string | null;
   record_creation_mode?: string | null;
+  telnyx_model?: string;
+  telnyx_voice?: string;
+  telnyx_transcription_model?: string;
+  telnyx_language?: string;
 }
 
 export interface VoiceAgentMappingInput {
@@ -88,6 +92,22 @@ function ensureNonEmpty(value: unknown, field: string) {
   }
 
   return next;
+}
+
+function normalizeTelnyxLanguage(value: string) {
+  const normalized = normalizeString(value).toLowerCase().replace('_', '-');
+
+  if (!normalized) {
+    return normalized;
+  }
+
+  const [base] = normalized.split('-');
+
+  if (base && /^[a-z]{2,3}$/.test(base)) {
+    return base;
+  }
+
+  return normalized;
 }
 
 async function validateSourceId(db: EdgeClient, workspaceId: string, sourceId: string | null) {
@@ -175,6 +195,16 @@ export async function validateVoiceAgentPayload(
   const greeting = payload.greeting !== undefined ? ensureNonEmpty(payload.greeting, 'greeting') : undefined;
   const systemPrompt =
     payload.system_prompt !== undefined ? ensureNonEmpty(payload.system_prompt, 'system_prompt') : undefined;
+  const telnyxModel =
+    payload.telnyx_model !== undefined ? ensureNonEmpty(payload.telnyx_model, 'telnyx_model') : undefined;
+  const telnyxVoice =
+    payload.telnyx_voice !== undefined ? ensureNonEmpty(payload.telnyx_voice, 'telnyx_voice') : undefined;
+  const telnyxTranscriptionModel =
+    payload.telnyx_transcription_model !== undefined
+      ? ensureNonEmpty(payload.telnyx_transcription_model, 'telnyx_transcription_model')
+      : undefined;
+  const telnyxLanguage =
+    payload.telnyx_language !== undefined ? ensureNonEmpty(payload.telnyx_language, 'telnyx_language') : undefined;
   const sourceId = payload.source_id !== undefined
     ? await validateSourceId(db, workspaceId, normalizeNullableString(payload.source_id))
     : undefined;
@@ -185,6 +215,10 @@ export async function validateVoiceAgentPayload(
     status,
     greeting,
     systemPrompt,
+    telnyxModel,
+    telnyxVoice,
+    telnyxTranscriptionModel,
+    telnyxLanguage: telnyxLanguage !== undefined ? normalizeTelnyxLanguage(telnyxLanguage) : undefined,
     sourceId,
     fallbackMode: payload.fallback_mode !== undefined ? normalizeNullableString(payload.fallback_mode) : undefined,
     recordCreationMode:

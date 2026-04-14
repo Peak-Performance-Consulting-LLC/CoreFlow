@@ -37,6 +37,17 @@ export interface StartGatherUsingAiParams extends TelnyxClientConfig {
   interruptionSettings?: Record<string, unknown>;
 }
 
+export interface StartAIAssistantParams extends TelnyxClientConfig {
+  callControlId: string;
+  commandId?: string;
+  clientState?: string;
+  assistantId: string;
+  assistantOverrides?: Record<string, unknown>;
+  messageHistory?: unknown[];
+  sendMessageHistoryUpdates?: boolean;
+  interruptionSettings?: Record<string, unknown>;
+}
+
 export interface HangupCallParams extends TelnyxClientConfig {
   callControlId: string;
   commandId?: string;
@@ -226,6 +237,30 @@ export async function startGatherUsingAi(params: StartGatherUsingAiParams) {
     ...(language ? { language } : {}),
     ...(clientState ? { client_state: clientState } : {}),
     ...(isRecord(params.interruptionSettings) ? { interruption_settings: params.interruptionSettings } : {}),
+  });
+}
+
+export async function startAIAssistant(params: StartAIAssistantParams) {
+  const commandId = getString(params.commandId);
+  const clientState = getString(params.clientState);
+  const assistantId = getString(params.assistantId);
+
+  if (!assistantId) {
+    throw new TelnyxClientConfigError('assistantId is required.');
+  }
+
+  return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/ai_assistant_start`, {
+    assistant: {
+      id: assistantId,
+      ...(isRecord(params.assistantOverrides) ? params.assistantOverrides : {}),
+    },
+    ...(Array.isArray(params.messageHistory) ? { message_history: params.messageHistory } : {}),
+    ...(typeof params.sendMessageHistoryUpdates === 'boolean'
+      ? { send_message_history_updates: params.sendMessageHistoryUpdates }
+      : {}),
+    ...(isRecord(params.interruptionSettings) ? { interruption_settings: params.interruptionSettings } : {}),
+    ...(commandId ? { command_id: commandId } : {}),
+    ...(clientState ? { client_state: clientState } : {}),
   });
 }
 

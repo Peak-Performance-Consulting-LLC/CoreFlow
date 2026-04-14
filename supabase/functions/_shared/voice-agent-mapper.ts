@@ -58,6 +58,36 @@ function normalizeNullableString(value: unknown) {
   return next.length > 0 ? next : null;
 }
 
+function normalizeTelnyxVoice(value: unknown) {
+  const normalized = normalizeString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.includes('.')) {
+    return normalized;
+  }
+
+  return `Telnyx.KokoroTTS.${normalized}`;
+}
+
+function normalizeTelnyxLanguage(value: unknown) {
+  const normalized = normalizeString(value).toLowerCase().replace('_', '-');
+
+  if (!normalized) {
+    return null;
+  }
+
+  const [base] = normalized.split('-');
+
+  if (base && /^[a-z]{2,3}$/.test(base)) {
+    return base;
+  }
+
+  return normalized;
+}
+
 function ensureE164(value: unknown, field: string) {
   const next = normalizeString(value);
 
@@ -153,8 +183,24 @@ export function buildVoiceAgentGatherSchema(mappings: VoiceAgentFieldMappingRow[
 }
 
 export function buildVoiceAgentAssistantPayload(agent: VoiceAgentRow) {
+  const model = normalizeNullableString(agent.telnyx_model);
+  const voice = normalizeTelnyxVoice(agent.telnyx_voice);
+  const language = normalizeTelnyxLanguage(agent.telnyx_language);
+  const transcriptionModel = normalizeNullableString(agent.telnyx_transcription_model);
+
   return {
+    ...(model ? { model } : {}),
     instructions: agent.system_prompt,
+    ...(voice ? { voice } : {}),
+    ...(language ? { language } : {}),
+    ...(transcriptionModel
+      ? {
+        transcription: {
+          model: transcriptionModel,
+          ...(language ? { language } : {}),
+        },
+      }
+      : {}),
   };
 }
 

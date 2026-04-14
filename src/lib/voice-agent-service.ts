@@ -4,6 +4,7 @@ import { getSupabaseClient } from './supabaseClient';
 export type VoiceAgentStatus = 'draft' | 'active' | 'disabled';
 export type VoiceAgentMappingTargetType = 'core' | 'custom';
 export type VoiceAgentSourceValueType = 'string' | 'number' | 'boolean' | 'array';
+export type VoiceAgentTelnyxSyncStatus = 'pending' | 'synced' | 'failed';
 
 export interface VoiceAgentRecord {
   id: string;
@@ -16,6 +17,14 @@ export interface VoiceAgentRecord {
   source_id: string | null;
   fallback_mode: string | null;
   record_creation_mode: string | null;
+  telnyx_model: string;
+  telnyx_voice: string;
+  telnyx_transcription_model: string;
+  telnyx_language: string;
+  telnyx_assistant_id: string | null;
+  telnyx_sync_status: VoiceAgentTelnyxSyncStatus;
+  telnyx_sync_error: string | null;
+  telnyx_last_synced_at: string | null;
   created_by: string;
   updated_by: string | null;
   created_at: string;
@@ -69,6 +78,10 @@ export interface VoiceAgentCreateInput {
   description?: string | null;
   greeting: string;
   system_prompt: string;
+  telnyx_model: string;
+  telnyx_voice: string;
+  telnyx_transcription_model: string;
+  telnyx_language: string;
   source_id?: string | null;
   fallback_mode?: string | null;
   record_creation_mode?: string | null;
@@ -82,6 +95,10 @@ export interface VoiceAgentUpdateInput {
   description?: string | null;
   greeting?: string;
   system_prompt?: string;
+  telnyx_model?: string;
+  telnyx_voice?: string;
+  telnyx_transcription_model?: string;
+  telnyx_language?: string;
   source_id?: string | null;
   fallback_mode?: string | null;
   record_creation_mode?: string | null;
@@ -189,6 +206,10 @@ export async function createVoiceAgent(session: Session, payload: VoiceAgentCrea
 
 export async function updateVoiceAgent(session: Session, payload: VoiceAgentUpdateInput) {
   return invoke<{ agent: VoiceAgentRecord; activation_issues?: string[] }>('voice-agent-update', session, payload);
+}
+
+export async function deleteVoiceAgent(session: Session, payload: { workspace_id: string; voice_agent_id: string }) {
+  return invoke<{ agent: VoiceAgentRecord }>('voice-agent-delete', session, payload);
 }
 
 export async function bindVoiceAgentNumber(session: Session, payload: VoiceAgentBindingInput) {

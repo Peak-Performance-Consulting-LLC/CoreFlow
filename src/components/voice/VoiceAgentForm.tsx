@@ -10,6 +10,10 @@ export interface VoiceAgentFormValues {
   description: string;
   greeting: string;
   system_prompt: string;
+  telnyx_model: string;
+  telnyx_voice: string;
+  telnyx_transcription_model: string;
+  telnyx_language: string;
   source_id: string;
   status: VoiceAgentStatus;
 }
@@ -19,6 +23,10 @@ const emptyFormValues: VoiceAgentFormValues = {
   description: '',
   greeting: '',
   system_prompt: '',
+  telnyx_model: 'Qwen/Qwen3-235B-A22B',
+  telnyx_voice: 'af',
+  telnyx_transcription_model: 'deepgram/nova-3',
+  telnyx_language: 'en',
   source_id: '',
   status: 'draft',
 };
@@ -32,11 +40,17 @@ function toFormValues(agent: VoiceAgentRecord | null | undefined): VoiceAgentFor
     return createEmptyVoiceAgentFormValues();
   }
 
+  const normalizedVoice = agent.telnyx_voice.replace(/^Telnyx\.KokoroTTS\./, '').trim() || 'af';
+
   return {
     name: agent.name,
     description: agent.description ?? '',
     greeting: agent.greeting,
     system_prompt: agent.system_prompt,
+    telnyx_model: agent.telnyx_model,
+    telnyx_voice: normalizedVoice,
+    telnyx_transcription_model: agent.telnyx_transcription_model,
+    telnyx_language: agent.telnyx_language,
     source_id: agent.source_id ?? '',
     status: agent.status,
   };
@@ -175,6 +189,44 @@ export function VoiceAgentForm({
             placeholder="Describe how the assistant should collect information and stay within scope."
           />
         </label>
+
+        <div className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+          <div className="text-sm font-medium text-slate-900">Telnyx assistant settings</div>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            These values are sent to Telnyx when the assistant is created or updated there.
+          </p>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <Input
+              label="Telnyx model"
+              value={formValues.telnyx_model}
+              onChange={(event) => updateValues((current) => ({ ...current, telnyx_model: event.target.value }))}
+              placeholder="Qwen/Qwen3-235B-A22B"
+            />
+
+            <Input
+              label="Telnyx voice"
+              value={formValues.telnyx_voice}
+              onChange={(event) => updateValues((current) => ({ ...current, telnyx_voice: event.target.value }))}
+              placeholder="af"
+            />
+
+            <Input
+              label="Transcription model"
+              value={formValues.telnyx_transcription_model}
+              onChange={(event) =>
+                updateValues((current) => ({ ...current, telnyx_transcription_model: event.target.value }))}
+              placeholder="deepgram/nova-3"
+            />
+
+            <Input
+              label="Language"
+              value={formValues.telnyx_language}
+              onChange={(event) => updateValues((current) => ({ ...current, telnyx_language: event.target.value }))}
+              placeholder="en"
+            />
+          </div>
+        </div>
 
         <label className="flex flex-col gap-2 text-sm text-slate-700">
           <span className="font-medium">CRM source</span>

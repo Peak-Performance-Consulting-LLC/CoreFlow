@@ -1,7 +1,27 @@
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
 import { authenticateRequest, ensureWorkspaceOwner } from '../_shared/server.ts';
+import { deleteTelnyxAssistant } from '../_shared/telnyx-assistant-client.ts';
 import { createVoiceAgent } from '../_shared/voice-agent-repository.ts';
+import {
+  createTelnyxAssistantForVoiceAgent,
+  formatTelnyxAssistantSyncError,
+} from '../_shared/voice-agent-telnyx-sync.ts';
 import { validateVoiceAgentPayload } from '../_shared/voice-agent-validator.ts';
+
+const DEFAULT_TELNYX_MODEL = 'Qwen/Qwen3-235B-A22B';
+const DEFAULT_TELNYX_VOICE = 'af';
+const DEFAULT_TELNYX_TRANSCRIPTION_MODEL = 'deepgram/nova-3';
+const DEFAULT_TELNYX_LANGUAGE = 'en';
+
+function normalizeTelnyxVoice(value: string | null | undefined) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+
+  if (!normalized) {
+    return DEFAULT_TELNYX_VOICE;
+  }
+
+  return normalized.replace(/^Telnyx\.KokoroTTS\./, '').trim() || DEFAULT_TELNYX_VOICE;
+}
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
@@ -45,23 +65,67 @@ Deno.serve(async (request) => {
           : payload.record_creation_mode === null
             ? null
             : undefined,
+      telnyx_model: typeof payload.telnyx_model === 'string' ? payload.telnyx_model : undefined,
+      telnyx_voice: typeof payload.telnyx_voice === 'string' ? payload.telnyx_voice : undefined,
+      telnyx_transcription_model:
+        typeof payload.telnyx_transcription_model === 'string' ? payload.telnyx_transcription_model : undefined,
+      telnyx_language: typeof payload.telnyx_language === 'string' ? payload.telnyx_language : undefined,
       status: typeof payload.status === 'string' ? payload.status as 'draft' | 'disabled' : 'draft',
     });
 
-    const agent = await createVoiceAgent(authContext.serviceClient, {
-      workspaceId,
-      name: validated.name ?? '',
-      description: validated.description,
-      status: validated.status === 'disabled' ? 'disabled' : 'draft',
-      greeting: validated.greeting ?? '',
-      systemPrompt: validated.systemPrompt ?? '',
-      sourceId: validated.sourceId,
-      fallbackMode: validated.fallbackMode,
-      recordCreationMode: validated.recordCreationMode,
-      createdBy: authContext.user.id,
-    });
+    let telnyxAssistantId: string | null = null;
+    const normalizedTelnyxVoice = normalizeTelnyxVoice(validated.telnyxVoice);
 
-    return jsonResponse({ agent }, 201);
+    try {
+      const telnyxAssistant = await createTelnyxAssistantForVoiceAgent({
+        name: validated.name ?? '',
+        description: validated.description,
+        greeting: validated.greeting ?? '',
+        systemPrompt: validated.systemPrompt ?? '',
+        telnyxModel: validated.telnyxModel ?? DEFAULT_TELNYX_MODEL,
+        telnyxVoice: normalizedTelnyxVoice,
+        telnyxTranscriptionModel: validated.telnyxTranscriptionModel ?? DEFAULT_TELNYX_TRANSCRIPTION_MODEL,
+        telnyxLanguage: validated.telnyxLanguage ?? DEFAULT_TELNYX_LANGUAGE,
+      });
+      telnyxAssistantId = telnyxAssistant.id;
+
+      const agent = await createVoiceAgent(authContext.serviceClient, {
+        workspaceId,
+        name: validated.name ?? '',
+        description: validated.description,
+        status: validated.status === 'disabled' ? 'disabled' : 'draft',
+        greeting: validated.greeting ?? '',
+        systemPrompt: validated.systemPrompt ?? '',
+        sourceId: validated.sourceId,
+        fallbackMode: validated.fallbackMode,
+        recordCreationMode: validated.recordCreationMode,
+        telnyxModel: validated.telnyxModel ?? DEFAULT_TELNYX_MODEL,
+        telnyxVoice: normalizedTelnyxVoice,
+        telnyxTranscriptionModel: validated.telnyxTranscriptionModel ?? DEFAULT_TELNYX_TRANSCRIPTION_MODEL,
+        telnyxLanguage: validated.telnyxLanguage ?? DEFAULT_TELNYX_LANGUAGE,
+        telnyxAssistantId,
+        telnyxSyncStatus: 'synced',
+        telnyxSyncError: null,
+        telnyxLastSyncedAt: new Date().toISOString(),
+        createdBy: authContext.user.id,
+      });
+
+      return jsonResponse({ agent }, 201);
+    } catch (error) {
+      if (telnyxAssistantId) {
+        try {
+          await deleteTelnyxAssistant({ assistantId: telnyxAssistantId });
+        } catch (cleanupError) {
+          console.warn('[voice-agent-create] failed to delete Telnyx assistant after local create failure', {
+            workspaceId,
+            telnyxAssistantId,
+            message: cleanupError instanceof Error ? cleanupError.message : 'Unknown error.',
+          });
+        }
+      }
+
+      throw new Error(formatTelnyxAssistantSyncError(error));
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected error.';
     const activationIssues =

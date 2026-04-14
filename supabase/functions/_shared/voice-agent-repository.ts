@@ -6,6 +6,7 @@ type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
 export type VoiceAgentStatus = 'draft' | 'active' | 'disabled';
 export type VoiceAgentMappingTargetType = 'core' | 'custom';
+export type VoiceAgentTelnyxSyncStatus = 'pending' | 'synced' | 'failed';
 
 export interface VoiceAgentRow {
   id: string;
@@ -18,6 +19,14 @@ export interface VoiceAgentRow {
   source_id: string | null;
   fallback_mode: string | null;
   record_creation_mode: string | null;
+  telnyx_model: string;
+  telnyx_voice: string;
+  telnyx_transcription_model: string;
+  telnyx_language: string;
+  telnyx_assistant_id: string | null;
+  telnyx_sync_status: VoiceAgentTelnyxSyncStatus;
+  telnyx_sync_error: string | null;
+  telnyx_last_synced_at: string | null;
   created_by: string;
   updated_by: string | null;
   created_at: string;
@@ -78,6 +87,14 @@ export interface CreateVoiceAgentParams {
   sourceId?: string | null;
   fallbackMode?: string | null;
   recordCreationMode?: string | null;
+  telnyxModel: string;
+  telnyxVoice: string;
+  telnyxTranscriptionModel: string;
+  telnyxLanguage: string;
+  telnyxAssistantId?: string | null;
+  telnyxSyncStatus?: VoiceAgentTelnyxSyncStatus;
+  telnyxSyncError?: string | null;
+  telnyxLastSyncedAt?: string | null;
   createdBy: string;
 }
 
@@ -92,6 +109,14 @@ export interface UpdateVoiceAgentParams {
   sourceId?: string | null;
   fallbackMode?: string | null;
   recordCreationMode?: string | null;
+  telnyxModel?: string;
+  telnyxVoice?: string;
+  telnyxTranscriptionModel?: string;
+  telnyxLanguage?: string;
+  telnyxAssistantId?: string | null;
+  telnyxSyncStatus?: VoiceAgentTelnyxSyncStatus;
+  telnyxSyncError?: string | null;
+  telnyxLastSyncedAt?: string | null;
   updatedBy: string;
 }
 
@@ -126,7 +151,7 @@ export interface SaveVoiceCallAssistantSnapshotParams {
 }
 
 const VOICE_AGENT_COLUMNS =
-  'id, workspace_id, name, description, status, greeting, system_prompt, source_id, fallback_mode, record_creation_mode, created_by, updated_by, created_at, updated_at';
+  'id, workspace_id, name, description, status, greeting, system_prompt, source_id, fallback_mode, record_creation_mode, telnyx_model, telnyx_voice, telnyx_transcription_model, telnyx_language, telnyx_assistant_id, telnyx_sync_status, telnyx_sync_error, telnyx_last_synced_at, created_by, updated_by, created_at, updated_at';
 const VOICE_AGENT_PHONE_BINDING_COLUMNS =
   'id, workspace_id, voice_agent_id, workspace_phone_number_id, is_active, created_at, updated_at';
 const VOICE_AGENT_FIELD_MAPPING_COLUMNS =
@@ -359,6 +384,14 @@ export async function createVoiceAgent(db: EdgeClient, params: CreateVoiceAgentP
       source_id: normalizeNullableString(params.sourceId),
       fallback_mode: normalizeNullableString(params.fallbackMode),
       record_creation_mode: normalizeNullableString(params.recordCreationMode),
+      telnyx_model: ensureNonEmpty(params.telnyxModel, 'telnyxModel'),
+      telnyx_voice: ensureNonEmpty(params.telnyxVoice, 'telnyxVoice'),
+      telnyx_transcription_model: ensureNonEmpty(params.telnyxTranscriptionModel, 'telnyxTranscriptionModel'),
+      telnyx_language: ensureNonEmpty(params.telnyxLanguage, 'telnyxLanguage'),
+      telnyx_assistant_id: normalizeNullableString(params.telnyxAssistantId),
+      telnyx_sync_status: params.telnyxSyncStatus ?? 'pending',
+      telnyx_sync_error: normalizeNullableString(params.telnyxSyncError),
+      telnyx_last_synced_at: normalizeNullableString(params.telnyxLastSyncedAt),
       created_by: ensureNonEmpty(params.createdBy, 'createdBy'),
       updated_by: ensureNonEmpty(params.createdBy, 'createdBy'),
     })
@@ -410,6 +443,38 @@ export async function updateVoiceAgent(db: EdgeClient, params: UpdateVoiceAgentP
     patch.record_creation_mode = normalizeNullableString(params.recordCreationMode);
   }
 
+  if (params.telnyxModel !== undefined) {
+    patch.telnyx_model = ensureNonEmpty(params.telnyxModel, 'telnyxModel');
+  }
+
+  if (params.telnyxVoice !== undefined) {
+    patch.telnyx_voice = ensureNonEmpty(params.telnyxVoice, 'telnyxVoice');
+  }
+
+  if (params.telnyxTranscriptionModel !== undefined) {
+    patch.telnyx_transcription_model = ensureNonEmpty(params.telnyxTranscriptionModel, 'telnyxTranscriptionModel');
+  }
+
+  if (params.telnyxLanguage !== undefined) {
+    patch.telnyx_language = ensureNonEmpty(params.telnyxLanguage, 'telnyxLanguage');
+  }
+
+  if (params.telnyxAssistantId !== undefined) {
+    patch.telnyx_assistant_id = normalizeNullableString(params.telnyxAssistantId);
+  }
+
+  if (params.telnyxSyncStatus !== undefined) {
+    patch.telnyx_sync_status = params.telnyxSyncStatus;
+  }
+
+  if (params.telnyxSyncError !== undefined) {
+    patch.telnyx_sync_error = normalizeNullableString(params.telnyxSyncError);
+  }
+
+  if (params.telnyxLastSyncedAt !== undefined) {
+    patch.telnyx_last_synced_at = normalizeNullableString(params.telnyxLastSyncedAt);
+  }
+
   const { data, error } = await db
     .from('voice_agents')
     .update(patch)
@@ -443,6 +508,25 @@ export async function listVoiceAgentBindings(
   }
 
   return mapBindingsWithPhoneNumbers(db, (data ?? []) as VoiceAgentPhoneBindingRow[]);
+}
+
+export async function deleteVoiceAgent(
+  db: EdgeClient,
+  workspaceId: string,
+  voiceAgentId: string,
+) {
+  const agent = await findVoiceAgentById(db, workspaceId, voiceAgentId);
+  const { error } = await db
+    .from('voice_agents')
+    .delete()
+    .eq('workspace_id', agent.workspace_id)
+    .eq('id', agent.id);
+
+  if (error) {
+    throwDbError('deleteVoiceAgent', error);
+  }
+
+  return agent;
 }
 
 export async function findActiveVoiceAgentBindingForNumber(

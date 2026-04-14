@@ -13,6 +13,7 @@ import type {
 import {
   bindVoiceAgentNumber,
   createVoiceAgent,
+  deleteVoiceAgent,
   getVoiceAgent,
   listVoiceAgents,
   setVoiceAgentMappings,
@@ -43,6 +44,10 @@ function createEmptyDraftValues(): VoiceAgentFormValues {
     description: '',
     greeting: '',
     system_prompt: '',
+    telnyx_model: 'Qwen/Qwen3-235B-A22B',
+    telnyx_voice: 'af',
+    telnyx_transcription_model: 'deepgram/nova-3',
+    telnyx_language: 'en',
     source_id: '',
     status: 'draft',
   };
@@ -65,11 +70,20 @@ function readCreateAssistantDraft(workspaceId: string): VoiceAgentFormValues {
     }
 
     const parsed = JSON.parse(raw) as Partial<VoiceAgentFormValues>;
+    const normalizedVoice =
+      typeof parsed.telnyx_voice === 'string'
+        ? parsed.telnyx_voice.replace(/^Telnyx\.KokoroTTS\./, '').trim() || 'af'
+        : 'af';
     return {
       name: typeof parsed.name === 'string' ? parsed.name : '',
       description: typeof parsed.description === 'string' ? parsed.description : '',
       greeting: typeof parsed.greeting === 'string' ? parsed.greeting : '',
       system_prompt: typeof parsed.system_prompt === 'string' ? parsed.system_prompt : '',
+      telnyx_model: typeof parsed.telnyx_model === 'string' ? parsed.telnyx_model : 'Qwen/Qwen3-235B-A22B',
+      telnyx_voice: normalizedVoice,
+      telnyx_transcription_model:
+        typeof parsed.telnyx_transcription_model === 'string' ? parsed.telnyx_transcription_model : 'deepgram/nova-3',
+      telnyx_language: typeof parsed.telnyx_language === 'string' ? parsed.telnyx_language : 'en',
       source_id: typeof parsed.source_id === 'string' ? parsed.source_id : '',
       status: parsed.status === 'disabled' ? 'disabled' : 'draft',
     };
@@ -109,6 +123,7 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
   const [submittingAgent, setSubmittingAgent] = useState(false);
   const [savingMappings, setSavingMappings] = useState(false);
   const [savingBindingNumberId, setSavingBindingNumberId] = useState<string | null>(null);
+  const [deletingAgent, setDeletingAgent] = useState(false);
   const [agentErrorMessage, setAgentErrorMessage] = useState('');
   const [agentActivationIssues, setAgentActivationIssues] = useState<string[]>([]);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -203,6 +218,10 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         description: values.description || null,
         greeting: values.greeting,
         system_prompt: values.system_prompt,
+        telnyx_model: values.telnyx_model,
+        telnyx_voice: values.telnyx_voice,
+        telnyx_transcription_model: values.telnyx_transcription_model,
+        telnyx_language: values.telnyx_language,
         source_id: values.source_id || null,
         status: values.status,
       };
@@ -241,10 +260,15 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         description: values.description || null,
         greeting: values.greeting,
         system_prompt: values.system_prompt,
+        telnyx_model: values.telnyx_model,
+        telnyx_voice: values.telnyx_voice,
+        telnyx_transcription_model: values.telnyx_transcription_model,
+        telnyx_language: values.telnyx_language,
         source_id: values.source_id || null,
         status: values.status,
       };
       const response = await updateVoiceAgent(session, payload);
+      const normalizedVoice = response.agent.telnyx_voice.replace(/^Telnyx\.KokoroTTS\./, '').trim() || 'af';
       setDetail((current) => (current ? { ...current, agent: response.agent } : current));
       toast.success('Voice assistant updated.');
       setAgentErrorMessage('');
@@ -254,6 +278,10 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         description: response.agent.description ?? '',
         greeting: response.agent.greeting,
         system_prompt: response.agent.system_prompt,
+        telnyx_model: response.agent.telnyx_model,
+        telnyx_voice: normalizedVoice,
+        telnyx_transcription_model: response.agent.telnyx_transcription_model,
+        telnyx_language: response.agent.telnyx_language,
         source_id: response.agent.source_id ?? '',
         status: response.agent.status,
       });
@@ -292,11 +320,16 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
 
     setAgentErrorMessage('');
     setAgentActivationIssues([]);
+    const normalizedVoice = detail.agent.telnyx_voice.replace(/^Telnyx\.KokoroTTS\./, '').trim() || 'af';
     setEditDraftValues({
       name: detail.agent.name,
       description: detail.agent.description ?? '',
       greeting: detail.agent.greeting,
       system_prompt: detail.agent.system_prompt,
+      telnyx_model: detail.agent.telnyx_model,
+      telnyx_voice: normalizedVoice,
+      telnyx_transcription_model: detail.agent.telnyx_transcription_model,
+      telnyx_language: detail.agent.telnyx_language,
       source_id: detail.agent.source_id ?? '',
       status: detail.agent.status,
     });
@@ -375,6 +408,39 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
     }
   }
 
+  async function handleDeleteAgent() {
+    if (!detail || deletingAgent) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete assistant "${detail.agent.name}"? This will also delete the linked Telnyx assistant when present.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingAgent(true);
+
+    try {
+      await deleteVoiceAgent(session, {
+        workspace_id: workspaceId,
+        voice_agent_id: detail.agent.id,
+      });
+      toast.success('Voice assistant deleted.');
+      setIsEditDrawerOpen(false);
+      setDetail(null);
+      setSelectedAgentId(null);
+      await loadAgents(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to delete voice assistant.';
+      toast.error(message);
+    } finally {
+      setDeletingAgent(false);
+    }
+  }
+
   if (configLoading && !config) {
     return <SectionSkeleton title="Voice assistants" rows={6} />;
   }
@@ -426,6 +492,7 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
               <div className="font-medium">{agent.name}</div>
               <div className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{agent.status}</div>
               <div className="mt-2 text-xs text-slate-600">{agent.active_bindings.length} active binding(s)</div>
+              <div className="mt-1 text-xs text-slate-500">Telnyx: {agent.telnyx_sync_status}</div>
             </button>
           ))}
 
@@ -449,12 +516,36 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
                 <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
                   Manage CRM mappings and ready-number bindings below. Use edit to update the assistant setup in a side drawer.
                 </p>
+                <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-600">
+                  <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1">
+                    Telnyx sync: {detail.agent.telnyx_sync_status}
+                  </span>
+                  {detail.agent.telnyx_assistant_id ? (
+                    <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1">
+                      Assistant ID: {detail.agent.telnyx_assistant_id}
+                    </span>
+                  ) : null}
+                </div>
+                {detail.agent.telnyx_sync_error ? (
+                  <div className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                    {detail.agent.telnyx_sync_error}
+                  </div>
+                ) : null}
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
                   {detail.agent.status}
                 </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleDeleteAgent}
+                  loading={deletingAgent}
+                  className="border border-rose-300/40 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800"
+                >
+                  Delete assistant
+                </Button>
                 <Button type="button" variant="secondary" onClick={handleOpenEditDrawer}>
                   Edit assistant
                 </Button>

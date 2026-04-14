@@ -1671,8 +1671,31 @@ export async function beginEventProcessing(
 }
 
 export async function upsertVoiceCallBase(db: EdgeClient, params: UpsertVoiceCallBaseParams) {
-  const workspaceId = ensureNonEmpty(params.workspaceId, 'workspaceId');
   const workspacePhoneNumberId = ensureNonEmpty(params.workspacePhoneNumberId, 'workspacePhoneNumberId');
+  const { data: phoneRow, error: phoneError } = await db
+    .from('workspace_phone_numbers')
+    .select('id, workspace_id')
+    .eq('id', workspacePhoneNumberId)
+    .maybeSingle();
+
+  if (phoneError) {
+    throwDbError('upsertVoiceCallBase.findWorkspacePhoneNumber', phoneError);
+  }
+
+  if (!phoneRow) {
+    throw new VoiceRepositoryNotFoundError('Workspace phone number not found.');
+  }
+
+  const phoneWorkspaceId = ensureNonEmpty((phoneRow as { workspace_id: string | null }).workspace_id, 'workspace_id');
+  const requestedWorkspaceId = normalizeNullableString(params.workspaceId);
+  const workspaceId = requestedWorkspaceId ?? phoneWorkspaceId;
+
+  if (workspaceId !== phoneWorkspaceId) {
+    throw new VoiceRepositoryWorkspaceMismatchError(
+      'workspace_phone_number_id is linked to a different workspace than workspaceId.',
+    );
+  }
+
   const providerCallControlId = ensureNonEmpty(params.providerCallControlId, 'providerCallControlId');
   const providerCallLegId = normalizeNullableString(params.providerCallLegId);
   const providerCallSessionId = normalizeNullableString(params.providerCallSessionId);
