@@ -2,6 +2,7 @@ export interface TelnyxClientConfig {
   apiKey?: string;
   baseUrl?: string;
   timeoutMs?: number;
+  logContext?: Record<string, unknown>;
 }
 
 export interface TelnyxCommandResult<TData = Record<string, unknown>> {
@@ -81,11 +82,21 @@ export class TelnyxTimeoutError extends TelnyxClientError {}
 export class TelnyxApiError extends TelnyxClientError {
   status: number;
   responseBody: unknown;
+  requestBody: Record<string, unknown> | null;
+  requestPath: string;
 
-  constructor(message: string, status: number, responseBody: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    responseBody: unknown,
+    requestBody: Record<string, unknown> | null,
+    requestPath: string,
+  ) {
     super(message);
     this.status = status;
     this.responseBody = responseBody;
+    this.requestBody = requestBody;
+    this.requestPath = requestPath;
   }
 }
 
@@ -98,6 +109,45 @@ function getString(value: unknown) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function sanitizePayloadValue(value: unknown): unknown | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  if (Array.isArray(value)) {
+    const sanitizedItems = value
+      .map((entry) => sanitizePayloadValue(entry))
+      .filter((entry) => entry !== undefined);
+    return sanitizedItems;
+  }
+
+  if (isRecord(value)) {
+    const sanitizedRecord: Record<string, unknown> = {};
+
+    for (const [key, entry] of Object.entries(value)) {
+      const sanitizedEntry = sanitizePayloadValue(entry);
+
+      if (sanitizedEntry !== undefined) {
+        sanitizedRecord[key] = sanitizedEntry;
+      }
+    }
+
+    return Object.keys(sanitizedRecord).length > 0 ? sanitizedRecord : undefined;
+  }
+
+  return value;
+}
+
+export function sanitizeTelnyxPayload(payload: Record<string, unknown>) {
+  const sanitized = sanitizePayloadValue(payload);
+  return isRecord(sanitized) ? sanitized : {};
 }
 
 function resolveClientConfig(config: TelnyxClientConfig) {
@@ -148,6 +198,14 @@ async function postTelnyxCommand<TData = Record<string, unknown>>(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const url = `${baseUrl}${path}`;
+  const sanitizedBody = sanitizeTelnyxPayload(body);
+  const logContext = isRecord(config.logContext) ? config.logContext : null;
+
+  console.log('[telnyx-client] command request', {
+    path,
+    payload: sanitizedBody,
+    context: logContext,
+  });
 
   try {
     const response = await fetch(url, {
@@ -156,16 +214,25 @@ async function postTelnyxCommand<TData = Record<string, unknown>>(
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(sanitizedBody),
       signal: controller.signal,
     });
     const parsedBody = await parseJsonSafe(response);
 
     if (!response.ok) {
+      console.warn('[telnyx-client] command failed', {
+        path,
+        status: response.status,
+        responseBody: parsedBody,
+        payload: sanitizedBody,
+        context: logContext,
+      });
       throw new TelnyxApiError(
         `Telnyx command failed with status ${response.status}.`,
         response.status,
         parsedBody,
+        sanitizedBody,
+        path,
       );
     }
 
@@ -173,12 +240,20 @@ async function postTelnyxCommand<TData = Record<string, unknown>>(
       ? (parsedBody.data as TData)
       : null;
     const commandIdFromResponse = isRecord(data) ? getString(data.command_id) : '';
-    const commandIdFromBody = getString(body.command_id);
+    const commandIdFromBody = getString(sanitizedBody.command_id);
+    const resolvedCommandId = commandIdFromResponse || commandIdFromBody || null;
+
+    console.log('[telnyx-client] command response', {
+      path,
+      status: response.status,
+      commandId: resolvedCommandId,
+      context: logContext,
+    });
 
     return {
       accepted: true,
       status: response.status,
-      commandId: commandIdFromResponse || commandIdFromBody || null,
+      commandId: resolvedCommandId,
       data,
       raw: isRecord(parsedBody) ? parsedBody : null,
     };
@@ -249,14 +324,12 @@ export async function startAIAssistant(params: StartAIAssistantParams) {
     throw new TelnyxClientConfigError('assistantId is required.');
   }
 
-  // Telnyx ai_assistant_start expects `ai_assistant_id` at the top level.
-  // Overrides (greeting, voice, transcription) go inside a separate `assistant` key.
   const assistantOverrides = isRecord(params.assistantOverrides) && Object.keys(params.assistantOverrides).length > 0
     ? params.assistantOverrides
     : undefined;
 
   return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/ai_assistant_start`, {
-    ai_assistant_id: assistantId,
+    assistant_id: assistantId,
     ...(assistantOverrides ? { assistant: assistantOverrides } : {}),
     ...(Array.isArray(params.messageHistory) && params.messageHistory.length > 0
       ? { message_history: params.messageHistory }
