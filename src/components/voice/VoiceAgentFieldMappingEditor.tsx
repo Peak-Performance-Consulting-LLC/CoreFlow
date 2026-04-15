@@ -74,7 +74,7 @@ export function VoiceAgentFieldMappingEditor({
   }, [mappings]);
 
   return (
-    <Card className="p-6">
+    <div className="p-6 bg-transparent">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-2xl text-slate-900">Collected fields and CRM mapping</h3>
@@ -266,6 +266,6 @@ export function VoiceAgentFieldMappingEditor({
           Save mappings
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

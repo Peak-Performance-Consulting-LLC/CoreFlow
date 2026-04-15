@@ -32,7 +32,7 @@ export function VoiceAgentBindingsEditor({
   }
 
   return (
-    <Card className="p-6">
+    <div className="p-6 bg-transparent">
       <div>
         <h3 className="font-display text-2xl text-slate-900">Ready number bindings</h3>
         <p className="mt-2 text-sm leading-7 text-slate-600">
@@ -80,7 +80,7 @@ export function VoiceAgentBindingsEditor({
                 <Button
                   type="button"
                   size="sm"
-                  variant={isCurrentBindingActive ? 'secondary' : 'primary'}
+                  variant={isCurrentBindingActive ? 'primary' : 'primary'}
                   loading={savingNumberId === number.id}
                   disabled={disabledByOtherAgent}
                   onClick={() => void onToggleBinding(number.id, !isCurrentBindingActive)}
@@ -92,6 +92,6 @@ export function VoiceAgentBindingsEditor({
           })}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

@@ -470,7 +470,7 @@ export function RecordsPage() {
         )}
 
         {config ? (
-          <Card className="p-5">
+          <div className="p-5 bg-transparent">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -593,7 +593,7 @@ export function RecordsPage() {
                 </div>
               ) : null}
             </div>
-          </Card>
+          </div>
         ) : (
           <SectionSkeleton title="Queue filters" rows={3} />
         )}
