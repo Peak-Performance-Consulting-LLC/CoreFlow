@@ -714,9 +714,9 @@ export async function getVoiceAgentRuntimeByPhoneNumberId(
 
   const mappings = await listVoiceAgentFieldMappings(db, workspaceId, agent.id);
 
-  if (mappings.length === 0) {
-    return null;
-  }
+  // NOTE: An agent with no field mappings is still valid — the AI assistant can
+  // start and gather unstructured conversation. Only gather_using_ai requires
+  // mappings to build a parameters schema. Do NOT return null here.
 
   const { agent_name: _agentName, ...binding } = activeBinding;
 

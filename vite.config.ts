@@ -9,4 +9,4 @@ export default defineConfig({
       'hyperanarchic-gasometrically-kimberli.ngrok-free.dev',
     ],
   },
-});
+}); 

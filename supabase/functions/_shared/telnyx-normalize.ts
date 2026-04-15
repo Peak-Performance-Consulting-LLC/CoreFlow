@@ -46,6 +46,110 @@ function getNestedRecord(parent: Record<string, unknown>, key: string) {
   return isRecord(value) ? value : null;
 }
 
+function findStringInUnknown(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const fromArray = findStringInUnknown(item);
+
+      if (fromArray) {
+        return fromArray;
+      }
+    }
+
+    return null;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const preferredKeys = [
+    'e164',
+    'phone_number_e164',
+    'phone_number',
+    'number',
+    'uri',
+    'value',
+    'id',
+  ];
+
+  for (const key of preferredKeys) {
+    if (!(key in value)) {
+      continue;
+    }
+
+    const fromPreferredKey = findStringInUnknown(value[key]);
+
+    if (fromPreferredKey) {
+      return fromPreferredKey;
+    }
+  }
+
+  for (const candidate of Object.values(value)) {
+    const nested = findStringInUnknown(candidate);
+
+    if (nested) {
+      return nested;
+    }
+  }
+
+  return null;
+}
+
+function normalizeE164FromCandidate(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const cleanedValue = value.trim();
+
+  if (!cleanedValue) {
+    return null;
+  }
+
+  const angleMatch = cleanedValue.match(/<([^>]+)>/);
+  const coreValue = (angleMatch?.[1] ?? cleanedValue)
+    .trim()
+    .replace(/^tel:/i, '')
+    .replace(/^sip:/i, '');
+  const userPart = coreValue.split('@')[0]?.split(';')[0]?.trim() ?? '';
+
+  if (!userPart) {
+    return null;
+  }
+
+  const compact = userPart.replace(/[\s().-]+/g, '');
+
+  if (/^\+[1-9][0-9]{1,14}$/.test(compact)) {
+    return compact;
+  }
+
+  const embedded = compact.match(/\+[1-9][0-9]{1,14}/);
+  return embedded?.[0] ?? null;
+}
+
+function pickE164(record: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    if (!(key in record)) {
+      continue;
+    }
+
+    const rawCandidate = findStringInUnknown(record[key]);
+    const normalized = normalizeE164FromCandidate(rawCandidate);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
 function pickString(record: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
     const value = getString(record[key]);
@@ -129,8 +233,12 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
     callLegId: pickString(payload, ['call_leg_id']) || null,
     callSessionId: pickString(payload, ['call_session_id']) || null,
     connectionId: pickString(payload, ['connection_id']) || null,
-    fromNumberE164: pickString(payload, ['from', 'from_number', 'from_number_e164']) || null,
-    toNumberE164: pickString(payload, ['to', 'to_number', 'to_number_e164']) || null,
+    fromNumberE164: pickE164(payload, ['from_number_e164', 'from_number', 'from', 'ani']) ||
+      pickE164(data, ['from_number_e164', 'from_number', 'from', 'ani']) ||
+      null,
+    toNumberE164: pickE164(payload, ['to_number_e164', 'to_number', 'to', 'destination', 'dnis']) ||
+      pickE164(data, ['to_number_e164', 'to_number', 'to', 'destination', 'dnis']) ||
+      null,
     gatherResult,
     gatherStatus: gatherStatus || null,
     messageHistory,
