@@ -54,6 +54,9 @@ const DEFAULT_ASSISTANT_VOICE = 'Telnyx.KokoroTTS.af';
 const DEFAULT_ASSISTANT_TRANSCRIPTION_MODEL = 'deepgram/nova-3';
 const ENABLE_NOISE_SUPPRESSION = parseBooleanEnv('TELNYX_ENABLE_NOISE_SUPPRESSION', false);
 const RECORDING_CHANNELS = parseRecordingChannelsEnv('TELNYX_RECORDING_CHANNELS', 'dual');
+const ENABLE_INITIATED_ASSISTANT_FALLBACK = parseBooleanEnv('TELNYX_ASSISTANT_START_ON_INITIATED_FALLBACK', true);
+const INITIATED_ASSISTANT_MAX_ATTEMPTS = 3;
+const INITIATED_ASSISTANT_RETRY_DELAY_MS = 700;
 
 function ensureNonEmpty(value: string | null | undefined) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
@@ -116,6 +119,13 @@ function commandId(action: 'answer' | 'assistant_start' | 'hangup', callControlI
   return `coreflow:voice:${action}:v1:${callControlId}`;
 }
 
+function assistantStartCommandId(
+  callControlId: string,
+  attempt: number,
+) {
+  return `coreflow:voice:assistant_start:v2:attempt:${attempt}:${callControlId}`;
+}
+
 function suppressionCommandId(callControlId: string) {
   return `coreflow:voice:suppression:v1:${callControlId}`;
 }
@@ -162,6 +172,22 @@ function safeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Unexpected error.';
 }
 
+function safeErrorDetails(error: unknown) {
+  if (!(error instanceof TelnyxApiError)) {
+    return null;
+  }
+
+  if (typeof error.responseBody !== 'object' || error.responseBody === null) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(error.responseBody));
+  } catch {
+    return null;
+  }
+}
+
 function isTelnyxCallAlreadyEndedError(error: unknown) {
   if (!(error instanceof TelnyxApiError) || error.status !== 422) {
     return false;
@@ -190,6 +216,22 @@ function isTelnyxCallAlreadyEndedError(error: unknown) {
 
     return code === '90018' || title.includes('call has already ended') || detail.includes("can't receive commands");
   });
+}
+
+function isRetryableAssistantStartError(error: unknown) {
+  if (error instanceof TelnyxApiError) {
+    if (error.status >= 500) {
+      return true;
+    }
+
+    return error.status === 408 || error.status === 409 || error.status === 422 || error.status === 429;
+  }
+
+  return isRetryableInternalError(error);
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Math.trunc(ms))));
 }
 
 function isRetryableInternalError(error: unknown) {
@@ -353,6 +395,84 @@ async function startInboundNoiseSuppressionForCall(params: {
       message: safeErrorMessage(error),
     });
   }
+}
+
+async function tryStartAssistantWithRetries(params: {
+  workspaceId: string;
+  voiceCallId: string;
+  callControlId: string;
+  assistantId: string;
+  assistantConfig?: Record<string, unknown>;
+  source: 'answered' | 'initiated_fallback';
+  maxAttempts: number;
+  retryDelayMs: number;
+}) {
+  const totalAttempts = Math.max(1, Math.trunc(params.maxAttempts));
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
+    if (attempt > 1) {
+      await sleep(params.retryDelayMs);
+    }
+
+    try {
+      const assistantStartResult = await startAIAssistant({
+        callControlId: params.callControlId,
+        commandId: assistantStartCommandId(params.callControlId, attempt),
+        clientState: buildClientState(params.workspaceId, params.voiceCallId),
+        assistantId: params.assistantId,
+        assistantConfig: params.assistantConfig,
+        participants: [
+          {
+            id: params.callControlId,
+            role: 'user',
+          },
+        ],
+        sendMessageHistoryUpdates: true,
+      });
+      const conversationId = typeof assistantStartResult.data?.conversation_id === 'string'
+        ? assistantStartResult.data.conversation_id
+        : null;
+
+      console.log('[telnyx-voice-webhook] assistant started', {
+        workspaceId: params.workspaceId,
+        voiceCallId: params.voiceCallId,
+        callControlId: params.callControlId,
+        source: params.source,
+        attempt,
+        assistantId: params.assistantId,
+        conversationId,
+        commandId: assistantStartResult.commandId,
+        status: assistantStartResult.status,
+      });
+
+      return {
+        started: true as const,
+      };
+    } catch (error) {
+      lastError = error;
+      console.warn('[telnyx-voice-webhook] assistant start attempt failed', {
+        workspaceId: params.workspaceId,
+        voiceCallId: params.voiceCallId,
+        callControlId: params.callControlId,
+        source: params.source,
+        attempt,
+        maxAttempts: totalAttempts,
+        message: safeErrorMessage(error),
+        status: error instanceof TelnyxApiError ? error.status : null,
+        details: safeErrorDetails(error),
+      });
+
+      if (!isRetryableAssistantStartError(error)) {
+        break;
+      }
+    }
+  }
+
+  return {
+    started: false as const,
+    error: lastError,
+  };
 }
 
 Deno.serve(async (request) => {
@@ -550,6 +670,83 @@ Deno.serve(async (request) => {
         commandId: commandId('answer', call.provider_call_control_id),
         clientState: buildClientState(workspaceId, call.id),
       });
+
+      if (ENABLE_INITIATED_ASSISTANT_FALLBACK) {
+        const runtimeConfig = await getVoiceAgentRuntimeByPhoneNumberId(
+          db,
+          workspaceId,
+          workspacePhoneNumber.id,
+        );
+        const assistantId = resolveAssistantId(runtimeConfig?.agent);
+
+        await setVoiceCallRuntimeMode(db, {
+          workspaceId,
+          voiceCallId: call.id,
+          runtimeMode: 'assistant',
+        });
+
+        if (runtimeConfig) {
+          const snapshot = buildVoiceAgentCallSnapshot(runtimeConfig);
+          await updateVoiceCallAssistantContext(db, {
+            workspaceId,
+            voiceCallId: call.id,
+            voiceAgentId: runtimeConfig.agent.id,
+            voiceAgentBindingId: runtimeConfig.binding.id,
+            assistantMappingSnapshot: snapshot,
+          });
+        } else {
+          await updateVoiceCallAssistantContext(db, {
+            workspaceId,
+            voiceCallId: call.id,
+            voiceAgentId: null,
+            voiceAgentBindingId: null,
+            assistantMappingSnapshot: null,
+          });
+        }
+
+        if (!assistantId) {
+          console.warn('[telnyx-voice-webhook] initiated fallback skipped (missing assistant id)', {
+            workspaceId,
+            voiceCallId: call.id,
+            callControlId: call.provider_call_control_id,
+            runtimeVoiceAgentId: runtimeConfig?.agent.id ?? null,
+          });
+        } else {
+          const fallbackStart = await tryStartAssistantWithRetries({
+            workspaceId,
+            voiceCallId: call.id,
+            callControlId: call.provider_call_control_id,
+            assistantId,
+            assistantConfig: buildAssistantStartOverrides(runtimeConfig?.agent),
+            source: 'initiated_fallback',
+            maxAttempts: INITIATED_ASSISTANT_MAX_ATTEMPTS,
+            retryDelayMs: INITIATED_ASSISTANT_RETRY_DELAY_MS,
+          });
+
+          if (fallbackStart.started) {
+            await applyCallGathering(db, {
+              workspaceId,
+              voiceCallId: call.id,
+            });
+          } else {
+            console.warn('[telnyx-voice-webhook] initiated fallback exhausted without starting assistant', {
+              workspaceId,
+              voiceCallId: call.id,
+              callControlId: call.provider_call_control_id,
+              message: safeErrorMessage(fallbackStart.error),
+              status: fallbackStart.error instanceof TelnyxApiError ? fallbackStart.error.status : null,
+              details: safeErrorDetails(fallbackStart.error),
+            });
+          }
+        }
+      } else {
+        console.log('[telnyx-voice-webhook] initiated fallback disabled by env', {
+          workspaceId,
+          voiceCallId: call.id,
+          callControlId: call.provider_call_control_id,
+        });
+      }
+
       await markEventProcessed(db, { workspaceId, eventId });
       return jsonResponse({ ok: true, handled: normalizedEvent.eventType }, 200);
     }
@@ -618,11 +815,19 @@ Deno.serve(async (request) => {
         });
       }
 
-      await startInboundNoiseSuppressionForCall({
-        workspaceId,
-        voiceCallId: call.id,
-        callControlId: call.provider_call_control_id,
-      });
+      if (ENABLE_NOISE_SUPPRESSION) {
+        await startInboundNoiseSuppressionForCall({
+          workspaceId,
+          voiceCallId: call.id,
+          callControlId: call.provider_call_control_id,
+        });
+      } else {
+        console.log('[telnyx-voice-webhook] noise suppression skipped for assistant mode', {
+          workspaceId,
+          voiceCallId: call.id,
+          callControlId: call.provider_call_control_id,
+        });
+      }
 
       if (!assistantId) {
         const errorMessage =
@@ -657,23 +862,20 @@ Deno.serve(async (request) => {
         return jsonResponse({ ok: true, failed: true, reason: 'missing_telnyx_assistant_id' }, 200);
       }
 
-      const assistantStartResult = await startAIAssistant({
-        callControlId: call.provider_call_control_id,
-        commandId: commandId('assistant_start', call.provider_call_control_id),
-        clientState: buildClientState(workspaceId, call.id),
-        assistantId,
-        assistantOverrides: buildAssistantStartOverrides(runtimeConfig?.agent),
-        sendMessageHistoryUpdates: true,
-      });
-      console.log('[telnyx-voice-webhook] assistant started', {
+      const answeredStart = await tryStartAssistantWithRetries({
         workspaceId,
         voiceCallId: call.id,
         callControlId: call.provider_call_control_id,
-        runtimeMode: 'assistant',
         assistantId,
-        commandId: assistantStartResult.commandId,
-        status: assistantStartResult.status,
+        assistantConfig: buildAssistantStartOverrides(runtimeConfig?.agent),
+        source: 'answered',
+        maxAttempts: 1,
+        retryDelayMs: 0,
       });
+
+      if (!answeredStart.started && answeredStart.error) {
+        throw answeredStart.error;
+      }
 
       await applyCallGathering(db, {
         workspaceId,

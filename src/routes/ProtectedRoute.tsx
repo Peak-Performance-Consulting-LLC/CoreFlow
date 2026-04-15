@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
 import { useAuth } from '../hooks/useAuth';
+import { getDashboardPath } from '../lib/utils';
 
 export function ProtectedRoute({ allowWithoutWorkspace = false }: { allowWithoutWorkspace?: boolean }) {
   const location = useLocation();
@@ -12,6 +13,10 @@ export function ProtectedRoute({ allowWithoutWorkspace = false }: { allowWithout
 
   if (!user) {
     return <Navigate to="/signin" replace state={{ from: location }} />;
+  }
+
+  if (allowWithoutWorkspace && workspace) {
+    return <Navigate to={getDashboardPath(workspace)} replace />;
   }
 
   if (!allowWithoutWorkspace && !workspace) {

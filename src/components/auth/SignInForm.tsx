@@ -10,11 +10,18 @@ import { ConfigurationNotice } from '../ui/ConfigurationNotice';
 import { Input } from '../ui/Input';
 
 const rememberedEmailKey = 'coreflow.remembered-email';
+const existingUserSignedOutFlagKey = 'coreflow.existing-user-signed-out';
+type SignInRouteState = { prefillEmail?: string; existingUser?: boolean } | null;
 
 export function SignInForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isSupabaseReady, refreshWorkspace } = useAuth();
+  const routeState = location.state as SignInRouteState;
+  const hideSignUpOption = Boolean(
+    routeState?.existingUser ||
+      (typeof window !== 'undefined' && window.sessionStorage.getItem(existingUserSignedOutFlagKey) === '1'),
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -23,10 +30,10 @@ export function SignInForm() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
-    const stateEmail = (location.state as { prefillEmail?: string } | null)?.prefillEmail;
+    const stateEmail = routeState?.prefillEmail;
     const storedEmail = window.localStorage.getItem(rememberedEmailKey);
     setEmail(stateEmail ?? storedEmail ?? '');
-  }, [location.state]);
+  }, [routeState]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +72,9 @@ export function SignInForm() {
       }
 
       const workspace = await refreshWorkspace(data.session);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem(existingUserSignedOutFlagKey);
+      }
 
       toast.success('Welcome back to CoreFlow.');
 
@@ -137,12 +147,14 @@ export function SignInForm() {
         Sign In
       </Button>
 
-      <p className="text-sm text-slate-600">
-        New to CoreFlow?{' '}
-        <Link to="/signup" className="font-medium text-accent-blue transition hover:text-accent-blue">
-          Create your account
-        </Link>
-      </p>
+      {!hideSignUpOption ? (
+        <p className="text-sm text-slate-600">
+          New to CoreFlow?{' '}
+          <Link to="/signup" className="font-medium text-accent-blue transition hover:text-accent-blue">
+            Create your account
+          </Link>
+        </p>
+      ) : null}
     </form>
   );
 }

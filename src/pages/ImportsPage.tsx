@@ -53,7 +53,7 @@ export function ImportsPage() {
   async function handleSignOut() {
     await signOut();
     toast.success('Signed out successfully.');
-    navigate('/signin', { replace: true });
+    navigate('/signin', { replace: true, state: { existingUser: true } });
   }
 
   const mappingOptions = useMemo(() => {

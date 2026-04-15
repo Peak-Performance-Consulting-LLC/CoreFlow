@@ -42,7 +42,13 @@ export interface StartAIAssistantParams extends TelnyxClientConfig {
   commandId?: string;
   clientState?: string;
   assistantId: string;
-  assistantOverrides?: Record<string, unknown>;
+  assistantConfig?: Record<string, unknown>;
+  participants?: Array<{
+    id: string;
+    role: 'user' | 'assistant';
+    name?: string;
+    on_hangup?: 'continue_conversation' | 'end_conversation';
+  }>;
   messageHistory?: unknown[];
   sendMessageHistoryUpdates?: boolean;
   interruptionSettings?: Record<string, unknown>;
@@ -250,10 +256,9 @@ export async function startAIAssistant(params: StartAIAssistantParams) {
   }
 
   return postTelnyxCommand(params, `/calls/${params.callControlId}/actions/ai_assistant_start`, {
-    assistant: {
-      id: assistantId,
-      ...(isRecord(params.assistantOverrides) ? params.assistantOverrides : {}),
-    },
+    assistant: { id: assistantId },
+    ...(isRecord(params.assistantConfig) ? params.assistantConfig : {}),
+    ...(Array.isArray(params.participants) ? { participants: params.participants } : {}),
     ...(Array.isArray(params.messageHistory) ? { message_history: params.messageHistory } : {}),
     ...(typeof params.sendMessageHistoryUpdates === 'boolean'
       ? { send_message_history_updates: params.sendMessageHistoryUpdates }

@@ -1,16 +1,16 @@
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { SignUpForm } from '../components/auth/SignUpForm';
+import { SignupValuePanel } from '../components/auth/SignupValuePanel';
 
 export function SignUpPage() {
   return (
     <AuthLayout
-      eyebrow="Create account"
-      title="Launch your workspace and choose the CRM mode that fits your business."
-      description="Sign up, define your workspace, select an industry mode, and enter a personalized dashboard powered by Supabase auth and edge functions."
+      eyebrow="Create workspace"
+      title="Launch your CRM workspace"
+      description="Set up your account and workspace in one guided flow."
+      leftPanel={<SignupValuePanel />}
       footer={
-        <p>
-          Workspace creation happens during signup, so you leave onboarding with a ready-to-enter dashboard route.
-        </p>
+        <p>Workspace setup happens during signup, so you can start using CoreFlow right away.</p>
       }
     >
       <SignUpForm />

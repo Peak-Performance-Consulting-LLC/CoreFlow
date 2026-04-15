@@ -16,6 +16,7 @@ interface AuthContextValue {
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
+const EXISTING_USER_SIGNED_OUT_FLAG = 'coreflow.existing-user-signed-out';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,9 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const requestId = ++workspaceRequestIdRef.current;
     const cachedWorkspace = getCachedUserWorkspace(activeSession.user.id);
-    const hasVisibleWorkspace = cachedWorkspace !== undefined || workspace !== null;
+    const visibleWorkspace = cachedWorkspace !== undefined ? cachedWorkspace : workspace;
+    const hasVisibleWorkspace = visibleWorkspace !== null;
 
-    if (cachedWorkspace !== undefined) {
+    if (cachedWorkspace !== undefined && cachedWorkspace !== null) {
       setWorkspace(cachedWorkspace);
       setLoading(false);
     }
@@ -50,6 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const nextWorkspace = await fetchUserWorkspace(activeSession);
       if (workspaceRequestIdRef.current !== requestId) {
         return nextWorkspace;
+      }
+
+      if (nextWorkspace === null && hasVisibleWorkspace) {
+        return visibleWorkspace;
       }
 
       setWorkspace(nextWorkspace);
@@ -71,6 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     if (!isSupabaseConfigured) {
       return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(EXISTING_USER_SIGNED_OUT_FLAG, '1');
     }
 
     const client = getSupabaseClient();

@@ -34,6 +34,8 @@ export function VoiceOpsPage() {
   const [filters, setFilters] = useState<VoiceCallFilterState>(defaultFilters);
   const [listData, setListData] = useState<VoiceCallListResponse | null>(null);
   const [listLoading, setListLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
   const [detail, setDetail] = useState<VoiceCallDetailResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -57,10 +59,14 @@ export function VoiceOpsPage() {
   async function handleSignOut() {
     await signOut();
     toast.success('Signed out successfully.');
-    navigate('/signin', { replace: true });
+    navigate('/signin', { replace: true, state: { existingUser: true } });
   }
 
-  async function loadCalls(nextSelectedCallId?: string | null) {
+  async function loadCalls(options?: {
+    nextSelectedCallId?: string | null;
+    page?: number;
+    pageSize?: number;
+  }) {
     if (!session || !workspace) {
       return;
     }
@@ -68,6 +74,8 @@ export function VoiceOpsPage() {
     setListLoading(true);
 
     try {
+      const nextPage = options?.page ?? page;
+      const nextPageSize = options?.pageSize ?? pageSize;
       const result = await listVoiceCalls(session, {
         workspace_id: workspace.id,
         outcome_status: filters.outcome_status || null,
@@ -75,12 +83,12 @@ export function VoiceOpsPage() {
         assistant_id: filters.assistant_id || null,
         phone_number_id: filters.phone_number_id || null,
         has_record: filters.has_record === 'all' ? null : filters.has_record === 'yes',
-        page: 1,
-        page_size: 25,
+        page: nextPage,
+        page_size: nextPageSize,
       });
       setListData(result);
       const preservedCallId = result.calls.some((call) => call.id === selectedCallId) ? selectedCallId : null;
-      const nextCallId = nextSelectedCallId ?? preservedCallId ?? result.calls[0]?.id ?? null;
+      const nextCallId = options?.nextSelectedCallId ?? preservedCallId ?? result.calls[0]?.id ?? null;
       setSelectedCallId(nextCallId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to load voice calls.';
@@ -124,6 +132,8 @@ export function VoiceOpsPage() {
     filters.assistant_id,
     filters.phone_number_id,
     filters.has_record,
+    page,
+    pageSize,
   ]);
 
   useEffect(() => {
@@ -140,7 +150,7 @@ export function VoiceOpsPage() {
     try {
       await retryVoiceCallLeadCreate(session, workspace.id, selectedCallId);
       toast.success('Lead creation retried.');
-      await loadCalls(selectedCallId);
+      await loadCalls({ nextSelectedCallId: selectedCallId });
       await loadDetail(selectedCallId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to retry lead creation.';
@@ -160,7 +170,7 @@ export function VoiceOpsPage() {
     try {
       await retryVoiceAction(session, workspace.id, actionRunId);
       toast.success('Action retried.');
-      await loadCalls(selectedCallId);
+      await loadCalls({ nextSelectedCallId: selectedCallId });
       await loadDetail(selectedCallId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to retry action.';
@@ -184,7 +194,7 @@ export function VoiceOpsPage() {
         review_status: reviewStatus,
       });
       toast.success(`Review marked ${reviewStatus}.`);
-      await loadCalls(selectedCallId);
+      await loadCalls({ nextSelectedCallId: selectedCallId });
       await loadDetail(selectedCallId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to update review.';
@@ -213,7 +223,13 @@ export function VoiceOpsPage() {
                 webhook-to-CRM path without leaving the workspace.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Button type="button" variant="secondary" size="sm" onClick={() => void loadCalls(selectedCallId)} loading={listLoading}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void loadCalls({ nextSelectedCallId: selectedCallId })}
+                  loading={listLoading}
+                >
                   <RefreshCcw className="h-4 w-4" />
                   Refresh queue
                 </Button>
@@ -231,7 +247,7 @@ export function VoiceOpsPage() {
                   <PhoneCall className="h-5 w-5" />
                   Calls loaded
                 </div>
-                <div className="mt-4 font-display text-4xl text-slate-900">{listData?.calls.length ?? 0}</div>
+                <div className="mt-4 font-display text-4xl text-slate-900">{listData?.total ?? 0}</div>
               </div>
               <div className="rounded-[26px] border border-[#D9C39D] bg-[#FAF3E6] p-5">
                 <div className="flex items-center gap-3 text-[#7A5C33]">
@@ -256,8 +272,14 @@ export function VoiceOpsPage() {
           filters={filters}
           calls={listData?.calls ?? []}
           loading={listLoading}
-          onChange={(patch) => setFilters((current) => ({ ...current, ...patch }))}
-          onReset={() => setFilters(defaultFilters)}
+          onChange={(patch) => {
+            setPage(1);
+            setFilters((current) => ({ ...current, ...patch }));
+          }}
+          onReset={() => {
+            setPage(1);
+            setFilters(defaultFilters);
+          }}
         />
 
         <VoiceCallsTable
@@ -265,6 +287,26 @@ export function VoiceOpsPage() {
           loading={listLoading}
           selectedCallId={selectedCallId}
           onSelect={setSelectedCallId}
+          page={listData?.page ?? page}
+          pageSize={listData?.pageSize ?? pageSize}
+          total={listData?.total ?? 0}
+          hasNextPage={Boolean(listData?.next_page)}
+          hasPrevPage={(listData?.page ?? page) > 1}
+          onPageChange={(nextPage) => {
+            if (nextPage < 1 || listLoading) {
+              return;
+            }
+
+            setPage(nextPage);
+          }}
+          onPageSizeChange={(nextPageSize) => {
+            if (listLoading) {
+              return;
+            }
+
+            setPage(1);
+            setPageSize(nextPageSize);
+          }}
         />
       </div>
 

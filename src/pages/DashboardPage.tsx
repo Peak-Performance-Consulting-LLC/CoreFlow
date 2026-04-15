@@ -14,7 +14,7 @@ export function DashboardPage() {
   async function handleSignOut() {
     await signOut();
     toast.success('Signed out successfully.');
-    navigate('/signin', { replace: true });
+    navigate('/signin', { replace: true, state: { existingUser: true } });
   }
 
   return <DashboardShell workspace={workspace} onSignOut={handleSignOut} />;

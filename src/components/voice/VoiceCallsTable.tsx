@@ -32,10 +32,33 @@ interface VoiceCallsTableProps {
   calls: VoiceOpsCallRecord[];
   loading: boolean;
   selectedCallId: string | null;
+  page: number;
+  pageSize: number;
+  total: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
   onSelect: (voiceCallId: string) => void;
+  onPageChange: (nextPage: number) => void;
+  onPageSizeChange: (nextPageSize: number) => void;
 }
 
-export function VoiceCallsTable({ calls, loading, selectedCallId, onSelect }: VoiceCallsTableProps) {
+export function VoiceCallsTable({
+  calls,
+  loading,
+  selectedCallId,
+  page,
+  pageSize,
+  total,
+  hasNextPage,
+  hasPrevPage,
+  onSelect,
+  onPageChange,
+  onPageSizeChange,
+}: VoiceCallsTableProps) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = total === 0 ? 0 : Math.min(total, page * pageSize);
+
   return (
     <Card className="overflow-hidden p-0">
       <div className="border-b border-[#E7DED2] px-5 py-4">
@@ -94,6 +117,45 @@ export function VoiceCallsTable({ calls, loading, selectedCallId, onSelect }: Vo
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-[#E7DED2] px-5 py-4 text-sm text-slate-700 md:flex-row md:items-center md:justify-between">
+        <div>
+          Showing {start}-{end} of {total} calls
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2">
+            <span className="text-slate-600">Rows</span>
+            <select
+              value={pageSize}
+              onChange={(event) => onPageSizeChange(Number(event.target.value) || 25)}
+              className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-900 outline-none"
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </label>
+          <div className="text-slate-600">Page {page} of {totalPages}</div>
+          <button
+            type="button"
+            onClick={() => onPageChange(page - 1)}
+            disabled={!hasPrevPage || loading}
+            className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-700 transition hover:bg-[#F8F3EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={() => onPageChange(page + 1)}
+            disabled={!hasNextPage || loading}
+            className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-700 transition hover:bg-[#F8F3EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </Card>
   );

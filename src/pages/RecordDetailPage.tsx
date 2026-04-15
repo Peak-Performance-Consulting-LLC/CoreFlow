@@ -60,7 +60,7 @@ export function RecordDetailPage() {
   async function handleSignOut() {
     await signOut();
     toast.success('Signed out successfully.');
-    navigate('/signin', { replace: true });
+    navigate('/signin', { replace: true, state: { existingUser: true } });
   }
 
   async function loadRecord() {
