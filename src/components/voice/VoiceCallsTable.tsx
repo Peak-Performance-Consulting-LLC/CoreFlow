@@ -103,7 +103,6 @@ export function VoiceCallsTable({
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(call.outcome_status)}`}>
                     {call.outcome_status ?? 'pending'}
                   </span>
-                  {call.record_id ? <div className="mt-2 text-xs text-slate-700">Linked record</div> : null}
                 </td>
                 <td className="px-5 py-4 align-top">
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(call.review_status)}`}>

@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ eyebrow, title, description, actions }: PageHeaderProps) {
   return (
-    <Card className="p-5 sm:p-6">
+    <Card className="p-5 sm:p-6 bg-gradient-to-r from-indigo-500/5 via-blue-500/5 to-purple-500/5 border-l-4 border-indigo-500">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-indigo-600">{eyebrow}</div>
@@ -24,3 +24,4 @@ export function PageHeader({ eyebrow, title, description, actions }: PageHeaderP
     </Card>
   );
 }
+

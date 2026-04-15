@@ -22,21 +22,6 @@ const sourceValueTypeOptions: Array<{ value: VoiceAgentSourceValueType; label: s
   { value: 'array', label: 'Array' },
 ];
 
-function toInputRows(mappings: VoiceAgentMappingRecord[]): VoiceAgentMappingInput[] {
-  return mappings.length > 0
-    ? mappings.map((mapping) => ({
-        source_key: mapping.source_key,
-        source_label: mapping.source_label,
-        source_description: mapping.source_description,
-        source_value_type: mapping.source_value_type,
-        target_type: mapping.target_type,
-        target_key: mapping.target_key,
-        is_required: mapping.is_required,
-        position: mapping.position,
-      }))
-    : [];
-}
-
 function createEmptyRow(position: number): VoiceAgentMappingInput {
   return {
     source_key: '',
@@ -48,6 +33,25 @@ function createEmptyRow(position: number): VoiceAgentMappingInput {
     is_required: false,
     position,
   };
+}
+
+function toInputRows(mappings: VoiceAgentMappingRecord[]): VoiceAgentMappingInput[] {
+  if (mappings.length === 0) {
+    return [createEmptyRow(0)];
+  }
+
+  const firstMapping = [...mappings].sort((a, b) => a.position - b.position)[0];
+
+  return [{
+    source_key: firstMapping.source_key,
+    source_label: firstMapping.source_label,
+    source_description: firstMapping.source_description,
+    source_value_type: firstMapping.source_value_type,
+    target_type: firstMapping.target_type,
+    target_key: firstMapping.target_key,
+    is_required: firstMapping.is_required,
+    position: 0,
+  }];
 }
 
 interface VoiceAgentFieldMappingEditorProps {
@@ -89,14 +93,9 @@ export function VoiceAgentFieldMappingEditor({
         </Button>
       </div>
 
-      {rows.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-slate-300 bg-white p-5 text-sm text-slate-600">
-          No field mappings yet. Add at least one field before activating an assistant.
-        </div>
-      ) : (
-        <div className="mt-6 space-y-4">
-          {rows.map((row, index) => (
-            <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-slate-300 bg-white p-5">
+      <div className="mt-6 space-y-4">
+        {rows.map((row, index) => (
+          <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-slate-300 bg-white p-5">
               <div className="grid gap-4 xl:grid-cols-2">
                 <label className="flex flex-col gap-2 text-sm text-slate-800">
                   <span className="font-semibold">Source key</span>
@@ -233,25 +232,30 @@ export function VoiceAgentFieldMappingEditor({
                 </label>
               </div>
 
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setRows((current) => current.filter((_, itemIndex) => itemIndex !== index).map((item, itemIndex) => ({
-                      ...item,
-                      position: itemIndex,
-                    })))
-                  }
-                >
-                  Remove field
-                </Button>
-              </div>
+            <div className="mt-4 flex justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setRows((current) => {
+                    const remaining = current
+                      .filter((_, itemIndex) => itemIndex !== index)
+                      .map((item, itemIndex) => ({
+                        ...item,
+                        position: itemIndex,
+                      }));
+
+                    return remaining.length > 0 ? remaining : [createEmptyRow(0)];
+                  })
+                }
+              >
+                Remove field
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       <div className="mt-6 flex justify-end">
         <Button

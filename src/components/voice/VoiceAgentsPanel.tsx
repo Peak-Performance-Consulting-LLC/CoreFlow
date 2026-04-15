@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCrmWorkspace } from '../../hooks/useCrmWorkspace';
 import type {
@@ -33,12 +32,16 @@ interface VoiceAgentsPanelProps {
   session: Session;
   workspaceId: string;
   numbers: VoiceNumberRecord[];
+  numbersLoading: boolean;
+  numbersError: string;
 }
 
 export function VoiceAgentsPanel({
   session,
   workspaceId,
   numbers,
+  numbersLoading,
+  numbersError,
 }: VoiceAgentsPanelProps) {
   const { config, configError, configLoading, configRefreshing } = useCrmWorkspace();
   const [agents, setAgents] = useState<VoiceAgentSummary[]>([]);
@@ -308,21 +311,25 @@ export function VoiceAgentsPanel({
     }
   }
 
-  if (configLoading && !config) {
-    return <SectionSkeleton title="Voice assistants" rows={6} />;
-  }
-
-  if (configError) {
-    return <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>;
-  }
-
   if (listLoading) {
     return <SectionSkeleton title="Voice assistants" rows={5} />;
   }
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      {configRefreshing ? (
+        <Card className="p-4 text-sm text-slate-600">Refreshing CRM field metadata in the background...</Card>
+      ) : null}
+
+      {listError ? (
+        <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{listError}</Card>
+      ) : null}
+
+      {configError ? (
+        <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>
+      ) : null}
+
+      {/* <Card className="p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="text-xs uppercase tracking-[0.28em] text-emerald-200">Assistants</div>
@@ -372,7 +379,7 @@ export function VoiceAgentsPanel({
             </div>
           ) : null}
         </div>
-      </Card>
+      </Card> */}
 
       {detailLoading ? <SectionSkeleton title="Assistant details" rows={5} /> : null}
 
@@ -423,17 +430,23 @@ export function VoiceAgentsPanel({
             </div>
           </Card>
 
-          <VoiceAgentFieldMappingEditor
-            mappings={detail.mappings}
-            customFields={config?.customFields ?? []}
-            saving={savingMappings}
-            onSave={handleSaveMappings}
-          />
+          {configLoading && !config ? (
+            <SectionSkeleton title="Field mappings" rows={4} />
+          ) : (
+            <VoiceAgentFieldMappingEditor
+              mappings={detail.mappings}
+              customFields={config?.customFields ?? []}
+              saving={savingMappings}
+              onSave={handleSaveMappings}
+            />
+          )}
 
           <VoiceAgentBindingsEditor
             numbers={readyNumbers}
             bindings={detail.bindings}
             allAgents={agents}
+            loading={numbersLoading}
+            error={numbersError}
             savingNumberId={savingBindingNumberId}
             onToggleBinding={handleToggleBinding}
           />

@@ -1,6 +1,5 @@
 import type { VoiceCallListQuery, VoiceOpsCallRecord } from '../../lib/voice-ops-service';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 
 export interface VoiceCallFilterState {
   outcome_status: '' | VoiceCallListQuery['outcome_status'];
@@ -35,7 +34,7 @@ export function VoiceCallFilters({ filters, calls, loading, onChange, onReset }:
   );
 
   return (
-    <Card className="p-5">
+    <div className="p-5 bg-transparent">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
@@ -122,6 +121,6 @@ export function VoiceCallFilters({ filters, calls, loading, onChange, onReset }:
           </label>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

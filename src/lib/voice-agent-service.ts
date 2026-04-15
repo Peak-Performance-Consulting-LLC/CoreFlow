@@ -1,6 +1,8 @@
 import type { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from './supabaseClient';
 
+const VOICE_AGENT_CACHE_TTL_MS = 30 * 1000;
+
 export type VoiceAgentStatus = 'draft' | 'active' | 'disabled';
 export type VoiceAgentMappingTargetType = 'core' | 'custom';
 export type VoiceAgentSourceValueType = 'string' | 'number' | 'boolean' | 'array';
@@ -133,6 +135,15 @@ export class VoiceAgentServiceError extends Error {
   }
 }
 
+interface CacheEntry<T> {
+  data?: T;
+  fetchedAt: number;
+  promise?: Promise<T>;
+}
+
+const voiceAgentListCache = new Map<string, CacheEntry<{ agents: VoiceAgentSummary[] }>>();
+const voiceAgentDetailCache = new Map<string, CacheEntry<VoiceAgentDetailResponse>>();
+
 function getAuthHeaders(session: Session) {
   return {
     Authorization: `Bearer ${session.access_token}`,
@@ -187,33 +198,135 @@ async function invoke<TResponse>(name: string, session: Session, body?: unknown)
   return data as TResponse;
 }
 
+function isCacheFresh<T>(entry: CacheEntry<T> | undefined, ttlMs: number) {
+  if (!entry?.data) {
+    return false;
+  }
+
+  return Date.now() - entry.fetchedAt < ttlMs;
+}
+
+function createVoiceAgentDetailCacheKey(workspaceId: string, voiceAgentId: string) {
+  return `${workspaceId}::${voiceAgentId}`;
+}
+
+function invalidateVoiceAgentCaches(workspaceId: string, voiceAgentId?: string) {
+  voiceAgentListCache.delete(workspaceId);
+
+  if (voiceAgentId) {
+    voiceAgentDetailCache.delete(createVoiceAgentDetailCacheKey(workspaceId, voiceAgentId));
+    return;
+  }
+
+  for (const cacheKey of voiceAgentDetailCache.keys()) {
+    if (cacheKey.startsWith(`${workspaceId}::`)) {
+      voiceAgentDetailCache.delete(cacheKey);
+    }
+  }
+}
+
 export async function listVoiceAgents(session: Session, workspaceId: string) {
-  return invoke<{ agents: VoiceAgentSummary[] }>('voice-agent-list', session, {
+  const cachedEntry = voiceAgentListCache.get(workspaceId);
+
+  if (cachedEntry?.promise) {
+    return cachedEntry.promise;
+  }
+
+  if (isCacheFresh(cachedEntry, VOICE_AGENT_CACHE_TTL_MS)) {
+    return cachedEntry!.data as { agents: VoiceAgentSummary[] };
+  }
+
+  const request = invoke<{ agents: VoiceAgentSummary[] }>('voice-agent-list', session, {
     workspace_id: workspaceId,
+  })
+    .then((response) => {
+      voiceAgentListCache.set(workspaceId, {
+        data: response,
+        fetchedAt: Date.now(),
+      });
+      return response;
+    })
+    .catch((error) => {
+      if (cachedEntry?.data) {
+        voiceAgentListCache.set(workspaceId, cachedEntry);
+      } else {
+        voiceAgentListCache.delete(workspaceId);
+      }
+      throw error;
+    });
+
+  voiceAgentListCache.set(workspaceId, {
+    data: cachedEntry?.data,
+    fetchedAt: cachedEntry?.fetchedAt ?? 0,
+    promise: request,
   });
+
+  return request;
 }
 
 export async function getVoiceAgent(session: Session, workspaceId: string, voiceAgentId: string) {
-  return invoke<VoiceAgentDetailResponse>('voice-agent-get', session, {
+  const cacheKey = createVoiceAgentDetailCacheKey(workspaceId, voiceAgentId);
+  const cachedEntry = voiceAgentDetailCache.get(cacheKey);
+
+  if (cachedEntry?.promise) {
+    return cachedEntry.promise;
+  }
+
+  if (isCacheFresh(cachedEntry, VOICE_AGENT_CACHE_TTL_MS)) {
+    return cachedEntry!.data as VoiceAgentDetailResponse;
+  }
+
+  const request = invoke<VoiceAgentDetailResponse>('voice-agent-get', session, {
     workspace_id: workspaceId,
     voice_agent_id: voiceAgentId,
+  })
+    .then((response) => {
+      voiceAgentDetailCache.set(cacheKey, {
+        data: response,
+        fetchedAt: Date.now(),
+      });
+      return response;
+    })
+    .catch((error) => {
+      if (cachedEntry?.data) {
+        voiceAgentDetailCache.set(cacheKey, cachedEntry);
+      } else {
+        voiceAgentDetailCache.delete(cacheKey);
+      }
+      throw error;
+    });
+
+  voiceAgentDetailCache.set(cacheKey, {
+    data: cachedEntry?.data,
+    fetchedAt: cachedEntry?.fetchedAt ?? 0,
+    promise: request,
   });
+
+  return request;
 }
 
 export async function createVoiceAgent(session: Session, payload: VoiceAgentCreateInput) {
-  return invoke<{ agent: VoiceAgentRecord; activation_issues?: string[] }>('voice-agent-create', session, payload);
+  const response = await invoke<{ agent: VoiceAgentRecord; activation_issues?: string[] }>('voice-agent-create', session, payload);
+  invalidateVoiceAgentCaches(payload.workspace_id, response.agent.id);
+  return response;
 }
 
 export async function updateVoiceAgent(session: Session, payload: VoiceAgentUpdateInput) {
-  return invoke<{ agent: VoiceAgentRecord; activation_issues?: string[] }>('voice-agent-update', session, payload);
+  const response = await invoke<{ agent: VoiceAgentRecord; activation_issues?: string[] }>('voice-agent-update', session, payload);
+  invalidateVoiceAgentCaches(payload.workspace_id, payload.voice_agent_id);
+  return response;
 }
 
 export async function deleteVoiceAgent(session: Session, payload: { workspace_id: string; voice_agent_id: string }) {
-  return invoke<{ agent: VoiceAgentRecord }>('voice-agent-delete', session, payload);
+  const response = await invoke<{ agent: VoiceAgentRecord }>('voice-agent-delete', session, payload);
+  invalidateVoiceAgentCaches(payload.workspace_id, payload.voice_agent_id);
+  return response;
 }
 
 export async function bindVoiceAgentNumber(session: Session, payload: VoiceAgentBindingInput) {
-  return invoke<{ binding: VoiceAgentBindingRecord }>('voice-agent-bind-number', session, payload);
+  const response = await invoke<{ binding: VoiceAgentBindingRecord }>('voice-agent-bind-number', session, payload);
+  invalidateVoiceAgentCaches(payload.workspace_id, payload.voice_agent_id);
+  return response;
 }
 
 export async function setVoiceAgentMappings(
@@ -224,5 +337,7 @@ export async function setVoiceAgentMappings(
     mappings: VoiceAgentMappingInput[];
   },
 ) {
-  return invoke<{ mappings: VoiceAgentMappingRecord[] }>('voice-agent-set-mappings', session, payload);
+  const response = await invoke<{ mappings: VoiceAgentMappingRecord[] }>('voice-agent-set-mappings', session, payload);
+  invalidateVoiceAgentCaches(payload.workspace_id, payload.voice_agent_id);
+  return response;
 }

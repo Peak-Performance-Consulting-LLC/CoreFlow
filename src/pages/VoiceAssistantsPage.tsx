@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { WorkspaceLayout } from '../components/dashboard/WorkspaceLayout';
 import { PageHeader } from '../components/dashboard/PageHeader';
 import { VoiceAgentsPanel } from '../components/voice/VoiceAgentsPanel';
-import { Card } from '../components/ui/Card';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
-import { SectionSkeleton } from '../components/ui/SectionSkeleton';
 import { useAuth } from '../hooks/useAuth';
 import type { VoiceNumberRecord } from '../lib/voice-service';
 import { listVoiceNumbers } from '../lib/voice-service';
@@ -17,6 +15,7 @@ export function VoiceAssistantsPage() {
   const [numbers, setNumbers] = useState<VoiceNumberRecord[]>([]);
   const [numbersLoading, setNumbersLoading] = useState(true);
   const [numbersError, setNumbersError] = useState('');
+  const numbersRequestIdRef = useRef(0);
 
   const isOwner = Boolean(workspace && user && workspace.ownerId === user.id);
 
@@ -27,23 +26,37 @@ export function VoiceAssistantsPage() {
   }
 
   async function loadNumbers() {
+    const requestId = numbersRequestIdRef.current + 1;
+    numbersRequestIdRef.current = requestId;
+
     if (!session || !workspace || !isOwner) {
-      setNumbers([]);
-      setNumbersLoading(false);
+      if (numbersRequestIdRef.current === requestId) {
+        setNumbers([]);
+        setNumbersLoading(false);
+        setNumbersError('');
+      }
       return;
     }
 
-    setNumbersLoading(true);
-    setNumbersError('');
+    if (numbersRequestIdRef.current === requestId) {
+      setNumbersLoading(true);
+      setNumbersError('');
+    }
 
     try {
       const response = await listVoiceNumbers(session, workspace.id, true);
-      setNumbers(response.numbers);
+      if (numbersRequestIdRef.current === requestId) {
+        setNumbers(response.numbers);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to load voice numbers.';
-      setNumbersError(message);
+      if (numbersRequestIdRef.current === requestId) {
+        setNumbersError(message);
+      }
     } finally {
-      setNumbersLoading(false);
+      if (numbersRequestIdRef.current === requestId) {
+        setNumbersLoading(false);
+      }
     }
   }
 
@@ -84,17 +97,13 @@ export function VoiceAssistantsPage() {
           )}
         />
 
-        {numbersLoading ? (
-          <SectionSkeleton title="Voice assistants" rows={5} />
-        ) : numbersError ? (
-          <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{numbersError}</Card>
-        ) : (
-          <VoiceAgentsPanel
-            session={session}
-            workspaceId={workspace.id}
-            numbers={numbers}
-          />
-        )}
+        <VoiceAgentsPanel
+          session={session}
+          workspaceId={workspace.id}
+          numbers={numbers}
+          numbersLoading={numbersLoading}
+          numbersError={numbersError}
+        />
       </div>
     </WorkspaceLayout>
   );

@@ -1,6 +1,8 @@
 import type { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from './supabaseClient';
 
+const VOICE_NUMBERS_CACHE_TTL_MS = 30 * 1000;
+
 export type VoiceProvisioningStatus = 'pending' | 'active' | 'failed' | 'released';
 export type VoiceWebhookStatus = 'pending' | 'ready' | 'failed';
 export type VoiceMode = 'ai_lead_capture';
@@ -62,6 +64,14 @@ export interface VoiceNumberUpdateInput {
   voice_mode?: VoiceMode;
 }
 
+interface CacheEntry<T> {
+  data?: T;
+  fetchedAt: number;
+  promise?: Promise<T>;
+}
+
+const voiceNumbersCache = new Map<string, CacheEntry<{ numbers: VoiceNumberRecord[] }>>();
+
 function getAuthHeaders(session: Session) {
   return {
     Authorization: `Bearer ${session.access_token}`,
@@ -82,11 +92,65 @@ async function invoke<TResponse>(name: string, session: Session, body?: unknown)
   return data as TResponse;
 }
 
+function isCacheFresh<T>(entry: CacheEntry<T> | undefined, ttlMs: number) {
+  if (!entry?.data) {
+    return false;
+  }
+
+  return Date.now() - entry.fetchedAt < ttlMs;
+}
+
+function createVoiceNumbersCacheKey(workspaceId: string, includeInactive: boolean) {
+  return `${workspaceId}::${includeInactive ? 'all' : 'active'}`;
+}
+
+function invalidateVoiceNumbersCache(workspaceId: string) {
+  for (const cacheKey of voiceNumbersCache.keys()) {
+    if (cacheKey.startsWith(`${workspaceId}::`)) {
+      voiceNumbersCache.delete(cacheKey);
+    }
+  }
+}
+
 export async function listVoiceNumbers(session: Session, workspaceId: string, includeInactive = true) {
-  return invoke<{ numbers: VoiceNumberRecord[] }>('voice-number-list', session, {
+  const cacheKey = createVoiceNumbersCacheKey(workspaceId, includeInactive);
+  const cachedEntry = voiceNumbersCache.get(cacheKey);
+
+  if (cachedEntry?.promise) {
+    return cachedEntry.promise;
+  }
+
+  if (isCacheFresh(cachedEntry, VOICE_NUMBERS_CACHE_TTL_MS)) {
+    return cachedEntry!.data as { numbers: VoiceNumberRecord[] };
+  }
+
+  const request = invoke<{ numbers: VoiceNumberRecord[] }>('voice-number-list', session, {
     workspace_id: workspaceId,
     include_inactive: includeInactive,
+  })
+    .then((response) => {
+      voiceNumbersCache.set(cacheKey, {
+        data: response,
+        fetchedAt: Date.now(),
+      });
+      return response;
+    })
+    .catch((error) => {
+      if (cachedEntry?.data) {
+        voiceNumbersCache.set(cacheKey, cachedEntry);
+      } else {
+        voiceNumbersCache.delete(cacheKey);
+      }
+      throw error;
+    });
+
+  voiceNumbersCache.set(cacheKey, {
+    data: cachedEntry?.data,
+    fetchedAt: cachedEntry?.fetchedAt ?? 0,
+    promise: request,
   });
+
+  return request;
 }
 
 export async function searchVoiceNumbers(session: Session, filters: VoiceNumberSearchFilters) {
@@ -94,20 +158,26 @@ export async function searchVoiceNumbers(session: Session, filters: VoiceNumberS
 }
 
 export async function purchaseVoiceNumber(session: Session, payload: VoiceNumberPurchaseInput) {
-  return invoke<VoiceNumberPurchaseResponse>('voice-number-purchase', session, payload);
+  const response = await invoke<VoiceNumberPurchaseResponse>('voice-number-purchase', session, payload);
+  invalidateVoiceNumbersCache(payload.workspace_id);
+  return response;
 }
 
 export async function updateVoiceNumber(session: Session, payload: VoiceNumberUpdateInput) {
-  return invoke<{ number: VoiceNumberRecord }>('voice-number-update', session, payload);
+  const response = await invoke<{ number: VoiceNumberRecord }>('voice-number-update', session, payload);
+  invalidateVoiceNumbersCache(payload.workspace_id);
+  return response;
 }
 
 export async function reconcileVoiceNumber(
   session: Session,
   payload: Pick<VoiceNumberUpdateInput, 'workspace_id' | 'voice_number_id'>,
 ) {
-  return invoke<{ number: VoiceNumberRecord; webhookReady: boolean; reconciled?: boolean; provisioningInProgress?: boolean }>(
+  const response = await invoke<{ number: VoiceNumberRecord; webhookReady: boolean; reconciled?: boolean; provisioningInProgress?: boolean }>(
     'voice-number-reconcile',
     session,
     payload,
   );
+  invalidateVoiceNumbersCache(payload.workspace_id);
+  return response;
 }

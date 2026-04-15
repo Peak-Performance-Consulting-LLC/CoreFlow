@@ -7,6 +7,8 @@ interface VoiceAgentBindingsEditorProps {
   numbers: VoiceNumberRecord[];
   bindings: VoiceAgentBindingRecord[];
   allAgents: VoiceAgentSummary[];
+  loading: boolean;
+  error: string;
   savingNumberId: string | null;
   onToggleBinding: (workspacePhoneNumberId: string, nextActive: boolean) => Promise<void> | void;
 }
@@ -15,6 +17,8 @@ export function VoiceAgentBindingsEditor({
   numbers,
   bindings,
   allAgents,
+  loading,
+  error,
   savingNumberId,
   onToggleBinding,
 }: VoiceAgentBindingsEditorProps) {
@@ -36,7 +40,15 @@ export function VoiceAgentBindingsEditor({
         </p>
       </div>
 
-      {numbers.length === 0 ? (
+      {loading ? (
+        <div className="mt-6 rounded-3xl border border-slate-300 bg-white p-5 text-sm text-slate-600">
+          Loading ready voice numbers...
+        </div>
+      ) : error ? (
+        <div className="mt-6 rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
+          {error}
+        </div>
+      ) : numbers.length === 0 ? (
         <div className="mt-6 rounded-3xl border border-slate-300 bg-white p-5 text-sm text-slate-600">
           No ready voice numbers are available yet. Finish Phase 1 provisioning first, then return here to activate a binding.
         </div>
