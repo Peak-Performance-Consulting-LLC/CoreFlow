@@ -14,18 +14,18 @@ function formatDateTime(value: string | null) {
 
 function badgeClass(value: string | null) {
   if (value === 'lead_created' || value === 'resolved') {
-    return 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]';
+    return 'border-indigo-300 bg-[#EEF2FF] text-slate-700';
   }
 
   if (value === 'open' || value === 'review_needed' || value === 'gather_incomplete') {
-    return 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]';
+    return 'border-indigo-200 bg-[#EEF2FF] text-slate-700';
   }
 
   if (value === 'crm_failed' || value === 'mapping_failed' || value === 'ended_without_lead' || value === 'failed') {
-    return 'border-[#E1B9A8] bg-[#FAEEE8] text-[#8B5A4A]';
+    return 'border-rose-200 bg-rose-50 text-rose-700';
   }
 
-  return 'border-[#E7DED2] bg-[#F7F4EE] text-slate-700';
+  return 'border-slate-300 bg-slate-50 text-slate-700';
 }
 
 interface VoiceCallsTableProps {
@@ -61,22 +61,22 @@ export function VoiceCallsTable({
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="border-b border-[#E7DED2] px-5 py-4">
+      <div className="border-b border-slate-300 px-5 py-4">
         <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Voice queue</div>
-        <div className="mt-2 text-sm text-slate-600">Every inbound call is visible here, whether it created a lead or needs review.</div>
+        <div className="mt-2 text-sm text-slate-700">Every inbound call is visible here, whether it created a lead or needs review.</div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-[#FFFDFC] text-slate-600">
+        <table className="min-w-full text-left text-[14px]">
+          <thead className="bg-white text-slate-700">
             <tr>
-              <th className="px-5 py-3 font-medium">Caller</th>
-              <th className="px-5 py-3 font-medium">Number</th>
-              <th className="px-5 py-3 font-medium">Assistant</th>
-              <th className="px-5 py-3 font-medium">Outcome</th>
-              <th className="px-5 py-3 font-medium">Review</th>
-              <th className="px-5 py-3 font-medium">Gather</th>
-              <th className="px-5 py-3 font-medium">Created</th>
+              <th className="px-5 py-3 font-semibold">Caller</th>
+              <th className="px-5 py-3 font-semibold">Number</th>
+              <th className="px-5 py-3 font-semibold">Assistant</th>
+              <th className="px-5 py-3 font-semibold">Outcome</th>
+              <th className="px-5 py-3 font-semibold">Review</th>
+              <th className="px-5 py-3 font-semibold">Gather</th>
+              <th className="px-5 py-3 font-semibold">Created</th>
             </tr>
           </thead>
           <tbody>
@@ -90,13 +90,13 @@ export function VoiceCallsTable({
               <tr
                 key={call.id}
                 onClick={() => onSelect(call.id)}
-                className={`cursor-pointer border-t border-[#EDE4D8] transition hover:bg-[#FFFDFC] ${
-                  selectedCallId === call.id ? 'bg-[#FFFDFC]' : ''
+                className={`cursor-pointer border-t border-slate-300 transition hover:bg-white ${
+                  selectedCallId === call.id ? 'bg-white' : ''
                 }`}
               >
                 <td className="px-5 py-4 align-top">
                   <div className="font-medium text-slate-900">{call.from_number_e164}</div>
-                  <div className="mt-1 text-xs text-slate-500">{call.provider_call_control_id}</div>
+                  <div className="mt-1 text-[12px] text-slate-500">{call.provider_call_control_id}</div>
                 </td>
                 <td className="px-5 py-4 align-top text-slate-700">{call.phone_number_e164_label ?? call.to_number_e164}</td>
                 <td className="px-5 py-4 align-top text-slate-700">{call.voice_agent_name ?? 'Phase 1 flow'}</td>
@@ -104,7 +104,7 @@ export function VoiceCallsTable({
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(call.outcome_status)}`}>
                     {call.outcome_status ?? 'pending'}
                   </span>
-                  {call.record_id ? <div className="mt-2 text-xs text-[#7A5C33]">Linked record</div> : null}
+                  {call.record_id ? <div className="mt-2 text-xs text-slate-700">Linked record</div> : null}
                 </td>
                 <td className="px-5 py-4 align-top">
                   <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-medium ${badgeClass(call.review_status)}`}>
@@ -119,7 +119,7 @@ export function VoiceCallsTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[#E7DED2] px-5 py-4 text-sm text-slate-700 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-t border-slate-300 px-5 py-4 text-sm text-slate-700 md:flex-row md:items-center md:justify-between">
         <div>
           Showing {start}-{end} of {total} calls
         </div>
@@ -129,7 +129,7 @@ export function VoiceCallsTable({
             <select
               value={pageSize}
               onChange={(event) => onPageSizeChange(Number(event.target.value) || 25)}
-              className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-900 outline-none"
+              className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-slate-900 outline-none"
               disabled={loading}
             >
               <option value={10}>10</option>
@@ -143,7 +143,7 @@ export function VoiceCallsTable({
             type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={!hasPrevPage || loading}
-            className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-700 transition hover:bg-[#F8F3EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -151,7 +151,7 @@ export function VoiceCallsTable({
             type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={!hasNextPage || loading}
-            className="h-9 rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 text-slate-700 transition hover:bg-[#F8F3EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>

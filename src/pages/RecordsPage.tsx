@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { PageHeader } from '../components/dashboard/PageHeader';
 import { WorkspaceLayout } from '../components/dashboard/WorkspaceLayout';
 import { RecordCreateDrawer } from '../components/records/RecordCreateDrawer';
 import { RecordEditDrawer } from '../components/records/RecordEditDrawer';
@@ -426,30 +427,29 @@ export function RecordsPage() {
 
   return (
     <WorkspaceLayout workspace={workspace} onSignOut={handleSignOut}>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
-              {formatCrmLabel(workspace.crmType)} work queue
-            </div>
-            <h2 className="mt-2 font-display text-4xl text-slate-900">Records</h2>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link to="/imports" className={buttonStyles('secondary', 'sm')}>
-              Import records
-            </Link>
-            <button type="button" onClick={handleOpenCreateDrawer} className={buttonStyles('primary', 'sm')}>
-              Create record
-            </button>
-          </div>
-        </div>
+      <div className="space-y-5">
+        <PageHeader
+          eyebrow={`${formatCrmLabel(workspace.crmType)} work queue`}
+          title="Records"
+          description="Review records, triage follow-ups, and manage owner assignments from a single operational queue."
+          actions={(
+            <>
+              <Link to="/imports" className={buttonStyles('secondary', 'sm')}>
+                Import records
+              </Link>
+              <button type="button" onClick={handleOpenCreateDrawer} className={buttonStyles('primary', 'sm')}>
+                Create record
+              </button>
+            </>
+          )}
+        />
 
         {configRefreshing ? (
           <Card className="p-4 text-sm text-slate-600">Refreshing workspace config in the background...</Card>
         ) : null}
 
         {configError && !config ? (
-          <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{configError}</Card>
+          <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>
         ) : null}
 
         {config ? (
@@ -457,7 +457,7 @@ export function RecordsPage() {
             {metrics.map((metric) => (
               <Card key={metric.label} className="p-5">
                 <div className="text-xs uppercase tracking-[0.24em] text-slate-500">{metric.label}</div>
-                <div className="mt-3 font-display text-4xl text-slate-900">{metric.value}</div>
+                <div className="mt-3 font-display text-3xl text-slate-900">{metric.value}</div>
                 <p className="mt-2 text-sm text-slate-600">{metric.hint}</p>
               </Card>
             ))}
@@ -477,7 +477,7 @@ export function RecordsPage() {
                   <h3 className="font-display text-2xl text-slate-900">Daily queue filters</h3>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1 text-slate-700">
+                  <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700">
                     {hasActiveFilters ? `${activeFilterChips.length} active filters` : 'All records'}
                   </span>
                   <button
@@ -486,7 +486,7 @@ export function RecordsPage() {
                       setFilters(defaultFilters);
                       setPage(defaultPage);
                     }}
-                    className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1 text-slate-700 transition hover:text-slate-900"
+                    className="rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 transition hover:text-slate-900"
                   >
                     Reset filters
                   </button>
@@ -503,7 +503,7 @@ export function RecordsPage() {
                       }))
                     }
                     placeholder="Search title, contact, company, email"
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   />
                 <select
                   value={filters.stage_id ?? ''}
@@ -513,7 +513,7 @@ export function RecordsPage() {
                       stage_id: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                  className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="">All stages</option>
                   {config.pipelines.flatMap((pipeline) =>
@@ -532,7 +532,7 @@ export function RecordsPage() {
                       source_id: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                  className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="">All sources</option>
                   {config.sources.map((source) => (
@@ -546,7 +546,7 @@ export function RecordsPage() {
                   onChange={(event) =>
                     updateFilters((current) => ({ ...current, assignee_user_id: event.target.value || null }))
                   }
-                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                  className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="">All owners</option>
                   {config.assignees.map((assignee) => (
@@ -563,7 +563,7 @@ export function RecordsPage() {
                       status: event.target.value || null,
                     }))
                   }
-                  className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                  className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="">All statuses</option>
                   <option value="open">Open</option>

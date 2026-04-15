@@ -9,7 +9,7 @@ const stepLabels = ['Account', 'Workspace setup'] as const;
 
 export function SignupStepIndicator({ currentStep }: SignupStepIndicatorProps) {
   return (
-    <div className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+    <div className="rounded-2xl border border-slate-300 bg-white p-4">
       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-accent-blue">Step {currentStep} of 2</div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {stepLabels.map((label, index) => {
@@ -24,7 +24,7 @@ export function SignupStepIndicator({ currentStep }: SignupStepIndicatorProps) {
                 'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
                 isCurrent
                   ? 'border-accent-blue/35 bg-accent-blue/10 text-slate-900'
-                  : 'border-[#E7DED2] bg-[#F7F4EE] text-slate-600',
+                  : 'border-slate-300 bg-slate-50 text-slate-600',
               )}
             >
               {isDone ? <CheckCircle2 className="h-4 w-4 text-emerald-700" /> : <Circle className="h-4 w-4" />}

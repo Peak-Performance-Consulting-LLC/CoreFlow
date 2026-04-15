@@ -1,37 +1,57 @@
-import { motion } from 'framer-motion';
-import { featureHighlights } from '../../lib/constants';
-import { Card } from '../ui/Card';
-import { SectionHeading } from '../ui/SectionHeading';
+import { Bot, Download, ListChecks, PhoneCall, ShieldCheck, Table2 } from 'lucide-react';
+
+const features = [
+  {
+    title: 'Unified Records Queue',
+    description: 'Centralized records, contacts, and operational status in one searchable view.',
+    icon: ListChecks,
+  },
+  {
+    title: 'CSV Imports and Mapping',
+    description: 'Bulk import and map fields with intelligent matching and validation.',
+    icon: Download,
+  },
+  {
+    title: 'Voice Number Provisioning',
+    description: 'Provision and manage numbers from a dedicated voice workspace.',
+    icon: PhoneCall,
+  },
+  {
+    title: 'AI Assistant Configuration',
+    description: 'Configure assistants, field mappings, and call bindings in one flow.',
+    icon: Bot,
+  },
+  {
+    title: 'Call Ops Review Queue',
+    description: 'Review call outcomes, retry actions, and handle exceptions quickly.',
+    icon: Table2,
+  },
+  {
+    title: 'Role-based Workspace Control',
+    description: 'Define owner permissions and secure team access by workspace role.',
+    icon: ShieldCheck,
+  },
+];
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="section-shell pt-28">
-      <SectionHeading
-        eyebrow="Platform Highlights"
-        title="Designed like a premium SaaS from the first click."
-        description="CoreFlow combines polished product design with a practical onboarding and auth foundation, so the first version already feels fundable and scalable."
-        align="center"
-      />
-      <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {featureHighlights.map((feature, index) => {
-          const Icon = feature.icon;
+    <section id="features" className="section-shell pt-14">
+      <div className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Core Features</p>
+        <h2 className="mt-2 font-display text-3xl font-semibold text-slate-900">CoreFlow&apos;s modern operational tools</h2>
+      </div>
 
+      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {features.map((feature) => {
+          const Icon = feature.icon;
           return (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5, delay: index * 0.06 }}
-            >
-              <Card className="h-full p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-blue/25 bg-accent-blue/10 text-accent-blue">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-6 font-display text-2xl font-semibold text-slate-900">{feature.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{feature.description}</p>
-              </Card>
-            </motion.div>
+            <article key={feature.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-card">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                <Icon className="h-4 w-4" />
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-slate-900">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{feature.description}</p>
+            </article>
           );
         })}
       </div>

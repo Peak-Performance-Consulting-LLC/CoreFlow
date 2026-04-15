@@ -52,30 +52,30 @@ function formatStatusLabel(status: string | null | undefined) {
 function pillStyles(tone: 'neutral' | 'type' | 'source' | 'stage' | 'closed' | 'status') {
   switch (tone) {
     case 'type':
-      return 'border-[#D5C3A3] bg-[#F5EFE4] text-[#6A5840]';
+      return 'border-indigo-200 bg-[#F5EFE4] text-slate-700';
     case 'source':
-      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
+      return 'border-slate-300 bg-white text-slate-700';
     case 'stage':
-      return 'border-[#D8C09C] bg-[#F4EEE5] text-[#6E4C2F]';
+      return 'border-indigo-200 bg-[#F4EEE5] text-slate-700';
     case 'closed':
-      return 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]';
+      return 'border-indigo-300 bg-[#EEF2FF] text-slate-700';
     case 'status':
-      return 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]';
+      return 'border-indigo-200 bg-[#EEF2FF] text-slate-700';
     default:
-      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
+      return 'border-slate-300 bg-white text-slate-700';
   }
 }
 
 function followUpStyles(tone: ReturnType<typeof getRecordFollowUpSummary>['tone']) {
   switch (tone) {
     case 'overdue':
-      return 'border-[#E1B9A8] bg-[#FAEEE8] text-[#8B5A4A]';
+      return 'border-rose-200 bg-rose-50 text-rose-700';
     case 'today':
-      return 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]';
+      return 'border-indigo-200 bg-[#EEF2FF] text-slate-700';
     case 'pending':
-      return 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]';
+      return 'border-indigo-200 bg-[#EEF2FF] text-slate-700';
     default:
-      return 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700';
+      return 'border-slate-300 bg-white text-slate-700';
   }
 }
 
@@ -162,7 +162,7 @@ function RowActionsMenu({
           event.stopPropagation();
           setOpen((current) => !current);
         }}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E7DED2] bg-[#FFFDFC] text-slate-700 transition hover:border-[#D8CCBD] hover:bg-[#F7F4EE] hover:text-slate-900"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 transition hover:border-indigo-200 hover:bg-slate-50 hover:text-slate-900"
       >
         <Ellipsis className="h-4 w-4" />
       </button>
@@ -170,7 +170,7 @@ function RowActionsMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-12 z-30 w-56 rounded-[24px] border border-[#E7DED2] bg-[#F7F4EE] p-2 shadow-2xl shadow-slate-950/40 backdrop-blur-xl"
+          className="absolute right-0 top-12 z-30 w-56 rounded-[24px] border border-slate-300 bg-slate-50 p-2 shadow-2xl shadow-slate-950/40 backdrop-blur-xl"
         >
           <div className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             Actions
@@ -189,7 +189,7 @@ function RowActionsMenu({
                     setOpen(false);
                     action.onSelect();
                   }}
-                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-[#F7F4EE] hover:text-slate-900"
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                 >
                   <Icon className="h-4 w-4 text-slate-600" />
                   <span>{action.label}</span>
@@ -230,7 +230,7 @@ export function RecordListItem({
     <div
       className={cn(
         recordListGridClassName,
-        'group border-b border-[#E7DED2] px-5 py-4 text-sm transition duration-150 hover:bg-[#FFFDFC]',
+        'group border-b border-slate-300 px-5 py-4 text-sm transition duration-150 hover:bg-white',
       )}
     >
       <div className="min-w-0">
@@ -247,7 +247,7 @@ export function RecordListItem({
                 {identity.title}
               </Link>
               {identity.supportingTag ? (
-                <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-2 py-1 text-[11px] text-slate-700">
+                <span className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-700">
                   {identity.supportingTag}
                 </span>
               ) : null}
@@ -314,7 +314,7 @@ export function RecordListItem({
         <Link
           to={followUpHref}
           aria-label={`Open follow-up details for ${record.title}`}
-          className="group/followup block rounded-[20px] border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 transition hover:border-[#D8CCBD] hover:bg-[#F7F4EE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/30"
+          className="group/followup block rounded-[20px] border border-slate-300 bg-white px-4 py-3 transition hover:border-indigo-200 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/30"
         >
           <div className="flex items-start justify-between gap-3">
             <span

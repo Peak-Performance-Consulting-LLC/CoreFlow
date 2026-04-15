@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { PageHeader } from '../components/dashboard/PageHeader';
 import { WorkspaceLayout } from '../components/dashboard/WorkspaceLayout';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -139,14 +140,12 @@ export function ImportsPage() {
 
   return (
     <WorkspaceLayout workspace={workspace} onSignOut={handleSignOut}>
-      <div className="space-y-6">
-        <div>
-          <div className="text-xs uppercase tracking-[0.28em] text-slate-500">Imports scaffold</div>
-          <h2 className="mt-2 font-display text-4xl text-slate-900">Import jobs</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
-            This first pass creates import jobs, stores preview rows and mappings, and leaves execution for the next phase.
-          </p>
-        </div>
+      <div className="space-y-5">
+        <PageHeader
+          eyebrow="Imports"
+          title="Import jobs"
+          description="Create CSV import jobs, map columns to workspace fields, and validate preview rows before execution."
+        />
 
         {configRefreshing ? (
           <Card className="p-4 text-sm text-slate-600">Refreshing import metadata in the background...</Card>
@@ -161,7 +160,7 @@ export function ImportsPage() {
                   type="file"
                   accept=".csv,text/csv"
                   onChange={(event) => void handleFileChange(event)}
-                  className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-indigo-600"
                 />
               </label>
               <Button
@@ -174,10 +173,10 @@ export function ImportsPage() {
                 Create import job scaffold
               </Button>
             </div>
-            {jobMessage ? <p className="mt-4 text-sm text-emerald-300">{jobMessage}</p> : null}
+            {jobMessage ? <p className="mt-4 text-sm text-emerald-600">{jobMessage}</p> : null}
           </Card>
         ) : configError ? (
-          <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{configError}</Card>
+          <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>
         ) : configLoading ? (
           <SectionSkeleton title="Import tools" rows={4} />
         ) : null}
@@ -192,7 +191,7 @@ export function ImportsPage() {
                   <select
                     value={currentMappingValue(column)}
                     onChange={(event) => updateMapping(column, event.target.value)}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                   >
                     {mappingOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -223,7 +222,7 @@ export function ImportsPage() {
                 {previewRows.slice(0, 8).map((row, index) => (
                   <tr key={index}>
                     {columns.map((column) => (
-                      <td key={column} className="rounded-xl border border-[#E7DED2] bg-[#FFFDFC] px-3 py-2">
+                      <td key={column} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
                         {row[column]}
                       </td>
                     ))}

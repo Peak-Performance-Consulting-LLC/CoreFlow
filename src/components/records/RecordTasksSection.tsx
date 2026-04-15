@@ -67,7 +67,7 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
             rows={3}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
           />
         </label>
         <div className="grid gap-4 md:grid-cols-3">
@@ -76,7 +76,7 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
             <select
               value={priority}
               onChange={(event) => setPriority(event.target.value)}
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -89,7 +89,7 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
               type="datetime-local"
               value={dueAt}
               onChange={(event) => setDueAt(event.target.value)}
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm text-slate-700">
@@ -97,7 +97,7 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
             <select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             >
               <option value="">Unassigned</option>
               {assignees.map((assignee) => (
@@ -117,20 +117,20 @@ export function RecordTasksSection({ tasks, assignees, onCreateTask }: RecordTas
 
       <div className="mt-6 space-y-3">
         {tasks.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/[0.02] p-4 text-sm text-slate-500">
             No linked tasks yet. Create a follow-up to anchor the next action.
           </div>
         ) : (
           tasks.map((task) => (
-            <div key={task.id} className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+            <div key={task.id} className="rounded-2xl border border-slate-300 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="font-medium text-slate-900">{task.title}</div>
                   {task.description ? <div className="mt-1 text-sm text-slate-600">{task.description}</div> : null}
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-full border border-[#E7DED2] px-3 py-1 text-slate-700">{task.status}</span>
-                  <span className="rounded-full border border-[#E7DED2] px-3 py-1 text-slate-700">{task.priority}</span>
+                  <span className="rounded-full border border-slate-300 px-3 py-1 text-slate-700">{task.status}</span>
+                  <span className="rounded-full border border-slate-300 px-3 py-1 text-slate-700">{task.priority}</span>
                 </div>
               </div>
             </div>

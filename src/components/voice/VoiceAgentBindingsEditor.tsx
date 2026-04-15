@@ -37,7 +37,7 @@ export function VoiceAgentBindingsEditor({
       </div>
 
       {numbers.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 text-sm text-slate-600">
+        <div className="mt-6 rounded-3xl border border-slate-300 bg-white p-5 text-sm text-slate-600">
           No ready voice numbers are available yet. Finish Phase 1 provisioning first, then return here to activate a binding.
         </div>
       ) : (
@@ -51,7 +51,7 @@ export function VoiceAgentBindingsEditor({
             return (
               <div
                 key={number.id}
-                className="flex flex-col gap-4 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 lg:flex-row lg:items-center lg:justify-between"
+                className="flex flex-col gap-4 rounded-3xl border border-slate-300 bg-white p-5 lg:flex-row lg:items-center lg:justify-between"
               >
                 <div>
                   <div className="font-medium text-slate-900">{number.phone_number_e164}</div>

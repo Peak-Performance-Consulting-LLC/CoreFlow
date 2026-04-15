@@ -41,9 +41,9 @@ export function SignupValuePanel() {
           return (
             <div
               key={bullet.title}
-              className="flex items-center gap-3 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3"
+              className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3"
             >
-              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#E7DED2] bg-[#F7F4EE] text-accent-blue">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-accent-blue">
                 <Icon className="h-4 w-4" />
               </div>
               <span className="text-sm font-medium text-slate-800">{bullet.title}</span>
@@ -52,7 +52,7 @@ export function SignupValuePanel() {
         })}
       </div>
 
-      <div className="rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-3 text-sm text-slate-700">
+      <div className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
         Built for growing service businesses.
       </div>
     </div>

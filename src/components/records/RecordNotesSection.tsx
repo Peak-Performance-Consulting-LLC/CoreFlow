@@ -44,7 +44,7 @@ export function RecordNotesSection({ notes, onAddNote }: RecordNotesSectionProps
           value={body}
           onChange={(event) => setBody(event.target.value)}
           placeholder="Add a new note"
-          className="w-full rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
+          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
         />
         <div className="flex justify-end">
           <Button type="submit" size="sm" loading={submitting}>
@@ -55,12 +55,12 @@ export function RecordNotesSection({ notes, onAddNote }: RecordNotesSectionProps
 
       <div className="mt-6 space-y-3">
         {notes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/[0.02] p-4 text-sm text-slate-500">
             No notes yet. Add the first context note for this record.
           </div>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+            <div key={note.id} className="rounded-2xl border border-slate-300 bg-white p-4">
               <div className="text-sm leading-7 text-slate-700">{note.body}</div>
               <div className="mt-2 text-xs text-slate-500">{new Date(note.created_at).toLocaleString()}</div>
             </div>

@@ -48,7 +48,7 @@ export function VoiceCallActionsPanel({
         {actionRuns.length === 0 ? (
           <div className="text-sm text-slate-600">No voice action runs have been queued for this call yet.</div>
         ) : actionRuns.map((run) => (
-          <div key={run.id} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+          <div key={run.id} className="rounded-3xl border border-slate-300 bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="font-medium text-slate-900">{run.action_type}</div>

@@ -263,7 +263,7 @@ export function SignUpForm() {
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(event) => setTermsAccepted(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
+                className="mt-1 h-4 w-4 rounded border-indigo-200 bg-white text-accent-blue focus:ring-accent-blue"
               />
               <span>
                 I agree to the terms, privacy expectations, and workspace ownership rules for this launch build.

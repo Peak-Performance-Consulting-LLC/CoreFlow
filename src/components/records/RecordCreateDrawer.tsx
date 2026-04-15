@@ -75,16 +75,16 @@ export function RecordCreateDrawer({
         type="button"
         aria-label="Close record creator"
         onClick={onClose}
-        className={`absolute inset-0 bg-[#FFFDFC] transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-white transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside
-        className={`absolute inset-y-0 right-0 flex w-full max-w-4xl flex-col border-l border-[#E7DED2] bg-[#F7F4EE] shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex w-full max-w-4xl flex-col border-l border-slate-300 bg-slate-50 shadow-2xl backdrop-blur-xl transition duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="record-create-drawer-title"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[#E7DED2] px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">New record</div>
             <h2 id="record-create-drawer-title" className="mt-2 truncate font-display text-2xl text-slate-900">
@@ -97,7 +97,7 @@ export function RecordCreateDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-slate-700 transition hover:text-slate-900"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 text-slate-700 transition hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>

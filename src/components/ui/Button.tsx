@@ -2,26 +2,29 @@ import { LoaderCircle } from 'lucide-react';
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'border border-[#A8844C] bg-[#B9925A] text-[#FFFDFC] shadow-[0_12px_28px_rgba(122,92,51,0.14)] hover:bg-[#C6A56B] hover:border-[#C6A56B]',
+    'border border-indigo-700 bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 active:bg-indigo-800',
   secondary:
-    'border border-[#E7DED2] bg-[#F7F4EE] text-slate-900 hover:border-accent-blue/35 hover:bg-[#EFE7DC]',
-  ghost: 'text-slate-700 hover:bg-[#F3EEE6] hover:text-slate-900',
+    'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100',
+  ghost:
+    'border border-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900',
+  danger:
+    'border border-rose-500 bg-rose-600 text-white shadow-sm hover:bg-rose-700 active:bg-rose-800',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-10 px-4 text-sm',
-  md: 'h-12 px-5 text-sm sm:text-base',
-  lg: 'h-14 px-6 text-base',
+  sm: 'h-9 px-4 text-sm gap-1.5',
+  md: 'h-11 px-5 text-sm gap-2',
+  lg: 'h-12 px-6 text-base gap-2',
 };
 
 export function buttonStyles(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+    'inline-flex items-center justify-center rounded-xl font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1',
     variantStyles[variant],
     sizeStyles[size],
   );

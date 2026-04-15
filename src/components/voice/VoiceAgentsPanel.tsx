@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCrmWorkspace } from '../../hooks/useCrmWorkspace';
 import type {
   VoiceAgentBindingRecord,
-  VoiceAgentCreateInput,
   VoiceAgentMappingInput,
   VoiceAgentMappingRecord,
   VoiceAgentRecord,
@@ -12,7 +12,6 @@ import type {
 } from '../../lib/voice-agent-service';
 import {
   bindVoiceAgentNumber,
-  createVoiceAgent,
   deleteVoiceAgent,
   getVoiceAgent,
   listVoiceAgents,
@@ -24,13 +23,11 @@ import type { VoiceNumberRecord } from '../../lib/voice-service';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { SectionSkeleton } from '../ui/SectionSkeleton';
-import { type VoiceAgentFormValues } from './VoiceAgentForm';
+import { type VoiceAgentFormValues, createEmptyVoiceAgentFormValues } from './VoiceAgentForm';
 import { VoiceAgentBindingsEditor } from './VoiceAgentBindingsEditor';
 import { VoiceAgentFieldMappingEditor } from './VoiceAgentFieldMappingEditor';
 import { VoiceAgentFormDrawer } from './VoiceAgentFormDrawer';
 import type { Session } from '@supabase/supabase-js';
-
-const CREATE_ASSISTANT_DRAFT_STORAGE_KEY = 'coreflow.voice.assistant.createDraft';
 
 interface VoiceAgentsPanelProps {
   session: Session;
@@ -38,77 +35,11 @@ interface VoiceAgentsPanelProps {
   numbers: VoiceNumberRecord[];
 }
 
-function createEmptyDraftValues(): VoiceAgentFormValues {
-  return {
-    name: '',
-    description: '',
-    greeting: '',
-    system_prompt: '',
-    telnyx_model: 'Qwen/Qwen3-235B-A22B',
-    telnyx_voice: 'af',
-    telnyx_transcription_model: 'deepgram/nova-3',
-    telnyx_language: 'en',
-    source_id: '',
-    status: 'draft',
-  };
-}
-
-function getDraftStorageKey(workspaceId: string) {
-  return `${CREATE_ASSISTANT_DRAFT_STORAGE_KEY}:${workspaceId}`;
-}
-
-function readCreateAssistantDraft(workspaceId: string): VoiceAgentFormValues {
-  if (typeof window === 'undefined') {
-    return createEmptyDraftValues();
-  }
-
-  try {
-    const raw = window.sessionStorage.getItem(getDraftStorageKey(workspaceId));
-
-    if (!raw) {
-      return createEmptyDraftValues();
-    }
-
-    const parsed = JSON.parse(raw) as Partial<VoiceAgentFormValues>;
-    const normalizedVoice =
-      typeof parsed.telnyx_voice === 'string'
-        ? parsed.telnyx_voice.replace(/^Telnyx\.KokoroTTS\./, '').trim() || 'af'
-        : 'af';
-    return {
-      name: typeof parsed.name === 'string' ? parsed.name : '',
-      description: typeof parsed.description === 'string' ? parsed.description : '',
-      greeting: typeof parsed.greeting === 'string' ? parsed.greeting : '',
-      system_prompt: typeof parsed.system_prompt === 'string' ? parsed.system_prompt : '',
-      telnyx_model: typeof parsed.telnyx_model === 'string' ? parsed.telnyx_model : 'Qwen/Qwen3-235B-A22B',
-      telnyx_voice: normalizedVoice,
-      telnyx_transcription_model:
-        typeof parsed.telnyx_transcription_model === 'string' ? parsed.telnyx_transcription_model : 'deepgram/nova-3',
-      telnyx_language: typeof parsed.telnyx_language === 'string' ? parsed.telnyx_language : 'en',
-      source_id: typeof parsed.source_id === 'string' ? parsed.source_id : '',
-      status: parsed.status === 'disabled' ? 'disabled' : 'draft',
-    };
-  } catch {
-    return createEmptyDraftValues();
-  }
-}
-
-function persistCreateAssistantDraft(workspaceId: string, values: VoiceAgentFormValues) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.sessionStorage.setItem(getDraftStorageKey(workspaceId), JSON.stringify(values));
-}
-
-function clearCreateAssistantDraft(workspaceId: string) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.sessionStorage.removeItem(getDraftStorageKey(workspaceId));
-}
-
-export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsPanelProps) {
+export function VoiceAgentsPanel({
+  session,
+  workspaceId,
+  numbers,
+}: VoiceAgentsPanelProps) {
   const { config, configError, configLoading, configRefreshing } = useCrmWorkspace();
   const [agents, setAgents] = useState<VoiceAgentSummary[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -126,10 +57,8 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
   const [deletingAgent, setDeletingAgent] = useState(false);
   const [agentErrorMessage, setAgentErrorMessage] = useState('');
   const [agentActivationIssues, setAgentActivationIssues] = useState<string[]>([]);
-  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-  const [createDraftValues, setCreateDraftValues] = useState<VoiceAgentFormValues>(() => readCreateAssistantDraft(workspaceId));
-  const [editDraftValues, setEditDraftValues] = useState<VoiceAgentFormValues>(createEmptyDraftValues);
+  const [editDraftValues, setEditDraftValues] = useState<VoiceAgentFormValues>(createEmptyVoiceAgentFormValues);
 
   const readyNumbers = useMemo(
     () =>
@@ -186,15 +115,6 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
   }, [session, workspaceId]);
 
   useEffect(() => {
-    const nextDraft = readCreateAssistantDraft(workspaceId);
-    setCreateDraftValues(nextDraft);
-  }, [workspaceId]);
-
-  useEffect(() => {
-    persistCreateAssistantDraft(workspaceId, createDraftValues);
-  }, [workspaceId, createDraftValues]);
-
-  useEffect(() => {
     setAgentErrorMessage('');
     setAgentActivationIssues([]);
 
@@ -205,43 +125,6 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
 
     void loadAgentDetail(selectedAgentId);
   }, [selectedAgentId]);
-
-  async function handleCreateAgent(values: VoiceAgentFormValues) {
-    setSubmittingAgent(true);
-    setAgentErrorMessage('');
-    setAgentActivationIssues([]);
-
-    try {
-      const payload: VoiceAgentCreateInput = {
-        workspace_id: workspaceId,
-        name: values.name,
-        description: values.description || null,
-        greeting: values.greeting,
-        system_prompt: values.system_prompt,
-        telnyx_model: values.telnyx_model,
-        telnyx_voice: values.telnyx_voice,
-        telnyx_transcription_model: values.telnyx_transcription_model,
-        telnyx_language: values.telnyx_language,
-        source_id: values.source_id || null,
-        status: values.status,
-      };
-      const response = await createVoiceAgent(session, payload);
-      toast.success('Voice assistant created.');
-      setAgentErrorMessage('');
-      setAgentActivationIssues([]);
-      setIsCreateDrawerOpen(false);
-      setCreateDraftValues(createEmptyDraftValues());
-      clearCreateAssistantDraft(workspaceId);
-      await loadAgents(response.agent.id);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to save voice assistant.';
-      setAgentErrorMessage(message);
-      setAgentActivationIssues(error instanceof VoiceAgentServiceError ? error.activationIssues : []);
-      toast.error(message);
-    } finally {
-      setSubmittingAgent(false);
-    }
-  }
 
   async function handleUpdateAgent(values: VoiceAgentFormValues) {
     if (!detail) {
@@ -295,22 +178,6 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
     } finally {
       setSubmittingAgent(false);
     }
-  }
-
-  function handleOpenCreateDrawer() {
-    setAgentErrorMessage('');
-    setAgentActivationIssues([]);
-    setIsCreateDrawerOpen(true);
-  }
-
-  function handleCloseCreateDrawer() {
-    if (submittingAgent) {
-      return;
-    }
-
-    setAgentErrorMessage('');
-    setAgentActivationIssues([]);
-    setIsCreateDrawerOpen(false);
   }
 
   function handleOpenEditDrawer() {
@@ -446,7 +313,7 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
   }
 
   if (configError) {
-    return <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{configError}</Card>;
+    return <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>;
   }
 
   if (listLoading) {
@@ -466,9 +333,12 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
             </p>
           </div>
 
-          <Button type="button" variant="secondary" onClick={handleOpenCreateDrawer}>
+          <Link
+            to="/voice/assistants/new"
+            className="inline-flex items-center rounded-xl border border-indigo-600 bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+          >
             New assistant
-          </Button>
+          </Link>
         </div>
 
         {configRefreshing ? (
@@ -486,7 +356,7 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
               className={`rounded-2xl border px-4 py-3 text-left transition ${
                 selectedAgentId === agent.id
                   ? 'border-accent-blue/40 bg-accent-blue/10 text-slate-900'
-                  : 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700 hover:border-[#D8CCBD] hover:text-slate-900'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-200 hover:text-slate-900'
               }`}
             >
               <div className="font-medium">{agent.name}</div>
@@ -517,24 +387,24 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
                   Manage CRM mappings and ready-number bindings below. Use edit to update the assistant setup in a side drawer.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-600">
-                  <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1">
+                  <span className="rounded-full border border-slate-300 bg-white px-3 py-1">
                     Telnyx sync: {detail.agent.telnyx_sync_status}
                   </span>
                   {detail.agent.telnyx_assistant_id ? (
-                    <span className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-3 py-1">
+                    <span className="rounded-full border border-slate-300 bg-white px-3 py-1">
                       Assistant ID: {detail.agent.telnyx_assistant_id}
                     </span>
                   ) : null}
                 </div>
                 {detail.agent.telnyx_sync_error ? (
-                  <div className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                  <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                     {detail.agent.telnyx_sync_error}
                   </div>
                 ) : null}
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
+                <div className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
                   {detail.agent.status}
                 </div>
                 <Button
@@ -570,23 +440,9 @@ export function VoiceAgentsPanel({ session, workspaceId, numbers }: VoiceAgentsP
         </>
       ) : agents.length === 0 ? (
         <Card className="p-6 text-sm leading-7 text-slate-600">
-          No assistants yet. Click <span className="text-slate-900">New assistant</span> to open the setup drawer and create the first draft.
+          No assistants yet. Open <span className="text-slate-900">New assistant</span> to create your first assistant.
         </Card>
       ) : null}
-
-      <VoiceAgentFormDrawer
-        isOpen={isCreateDrawerOpen}
-        mode="create"
-        agent={null}
-        sources={config?.sources ?? []}
-        submitting={submittingAgent}
-        errorMessage={agentErrorMessage}
-        activationIssues={agentActivationIssues}
-        values={createDraftValues}
-        onValuesChange={setCreateDraftValues}
-        onClose={handleCloseCreateDrawer}
-        onSubmit={handleCreateAgent}
-      />
 
       <VoiceAgentFormDrawer
         isOpen={isEditDrawerOpen}

@@ -108,7 +108,7 @@ export function VoiceAgentForm({
           </p>
         </div>
         {mode === 'edit' && agent ? (
-          <div className="rounded-full border border-[#E7DED2] bg-[#FFFDFC] px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
+          <div className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs uppercase tracking-[0.24em] text-slate-700">
             {agent.status}
           </div>
         ) : null}
@@ -122,10 +122,10 @@ export function VoiceAgentForm({
         }}
       >
         {errorMessage ? (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <div>{errorMessage}</div>
             {activationIssues.length > 0 ? (
-              <ul className="mt-2 list-disc pl-5 text-rose-100/90">
+              <ul className="mt-2 list-disc pl-5 text-rose-700">
                 {activationIssues.map((issue) => (
                   <li key={issue}>{issue}</li>
                 ))}
@@ -148,7 +148,7 @@ export function VoiceAgentForm({
               value={formValues.status}
               onChange={(event) =>
                 updateValues((current) => ({ ...current, status: event.target.value as VoiceAgentStatus }))}
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             >
               <option value="draft">Draft</option>
               {mode === 'edit' ? <option value="active">Active</option> : null}
@@ -163,7 +163,7 @@ export function VoiceAgentForm({
             value={formValues.description}
             onChange={(event) => updateValues((current) => ({ ...current, description: event.target.value }))}
             rows={3}
-            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Short note about the assistant's role in this workspace."
           />
         </label>
@@ -174,7 +174,7 @@ export function VoiceAgentForm({
             value={formValues.greeting}
             onChange={(event) => updateValues((current) => ({ ...current, greeting: event.target.value }))}
             rows={3}
-            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Hello, thanks for calling..."
           />
         </label>
@@ -185,12 +185,12 @@ export function VoiceAgentForm({
             value={formValues.system_prompt}
             onChange={(event) => updateValues((current) => ({ ...current, system_prompt: event.target.value }))}
             rows={6}
-            className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
+            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500"
             placeholder="Describe how the assistant should collect information and stay within scope."
           />
         </label>
 
-        <div className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+        <div className="rounded-2xl border border-slate-300 bg-white p-4">
           <div className="text-sm font-medium text-slate-900">Telnyx assistant settings</div>
           <p className="mt-1 text-sm leading-6 text-slate-600">
             These values are sent to Telnyx when the assistant is created or updated there.
@@ -233,7 +233,7 @@ export function VoiceAgentForm({
           <select
             value={formValues.source_id}
             onChange={(event) => updateValues((current) => ({ ...current, source_id: event.target.value }))}
-            className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+            className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
           >
             <option value="">Use inbound-call fallback</option>
             {sources.map((source) => (

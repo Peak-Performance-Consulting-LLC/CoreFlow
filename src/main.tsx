@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('app')!).render(
           toastOptions={{
             classNames: {
               toast:
-                'border border-[#E7DED2] bg-[#FFFDFC] text-slate-900 shadow-[0_18px_40px_rgba(74,55,31,0.08)]',
+                'border border-slate-300 bg-white text-slate-900 shadow-[0_18px_40px_rgba(74,55,31,0.08)]',
             },
           }}
         />

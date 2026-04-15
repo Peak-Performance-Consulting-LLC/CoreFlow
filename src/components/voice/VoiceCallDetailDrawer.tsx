@@ -56,21 +56,36 @@ export function VoiceCallDetailDrawer({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <button
         type="button"
         aria-label="Close voice call details"
         onClick={onClose}
-        className="absolute inset-0 bg-[#FFFDFC]"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
       />
 
-      <aside className="absolute inset-y-0 right-0 flex w-full max-w-4xl flex-col border-l border-[#E7DED2] bg-[#F7F4EE] shadow-2xl backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-4 border-b border-[#E7DED2] px-5 py-4 sm:px-6">
+      <aside className="relative z-10 flex h-[min(92vh,980px)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-300 bg-slate-50 shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-300 px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Voice call</div>
             <h2 className="mt-2 truncate font-display text-2xl text-slate-900">
@@ -83,7 +98,7 @@ export function VoiceCallDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-slate-700 transition hover:text-slate-900"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 text-slate-700 transition hover:text-slate-900"
           >
             <X className="h-4 w-4" />
           </button>
@@ -95,30 +110,30 @@ export function VoiceCallDetailDrawer({
           ) : (
             <div className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+                <div className="rounded-3xl border border-slate-300 bg-white p-4">
                   <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Assistant</div>
                   <div className="mt-2 text-slate-900">{detail.call.voice_agent_name ?? detail.call.runtime_mode}</div>
                 </div>
-                <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+                <div className="rounded-3xl border border-slate-300 bg-white p-4">
                   <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Number</div>
                   <div className="mt-2 text-slate-900">{detail.call.phone_number_e164_label ?? detail.call.to_number_e164}</div>
                   <div className="mt-1 text-xs text-slate-500">
                     Last webhook: {formatDateTime(detail.call.voice_number_last_webhook_observed_at ?? null)}
                   </div>
                 </div>
-                <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+                <div className="rounded-3xl border border-slate-300 bg-white p-4">
                   <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Gather</div>
                   <div className="mt-2 text-slate-900">{detail.call.gather_status}</div>
                   <div className="mt-1 text-xs text-slate-500">{detail.call.provider_gather_status ?? 'No provider gather status'}</div>
                 </div>
-                <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+                <div className="rounded-3xl border border-slate-300 bg-white p-4">
                   <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Review</div>
                   <div className="mt-2 text-slate-900">{detail.call.review_status}</div>
                   <div className="mt-1 text-xs text-slate-500">{detail.call.outcome_error ?? detail.call.outcome_reason ?? 'No failure note'}</div>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4 text-sm text-slate-700">
+              <div className="rounded-3xl border border-slate-300 bg-white p-4 text-sm text-slate-700">
                 <div>Created: {formatDateTime(detail.call.created_at)}</div>
                 <div className="mt-2">Ended: {formatDateTime(detail.call.ended_at)}</div>
                 <div className="mt-2">Runtime: {detail.call.runtime_mode}</div>
@@ -148,7 +163,7 @@ export function VoiceCallDetailDrawer({
           )}
         </div>
 
-        <div className="flex justify-end border-t border-[#E7DED2] px-4 py-4 sm:px-6">
+        <div className="flex justify-end border-t border-slate-300 px-4 py-4 sm:px-6">
           <Button type="button" variant="ghost" onClick={onClose}>
             Close
           </Button>

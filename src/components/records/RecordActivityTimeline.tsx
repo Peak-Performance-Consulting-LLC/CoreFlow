@@ -149,26 +149,26 @@ function toneStyles(tone: ActivityTone) {
     case 'success':
       return {
         rail: 'bg-emerald-300/25',
-        icon: 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]',
-        badge: 'border-[#CCB893] bg-[#F5EFE5] text-[#6C5737]',
+        icon: 'border-indigo-300 bg-[#EEF2FF] text-slate-700',
+        badge: 'border-indigo-300 bg-[#EEF2FF] text-slate-700',
       };
     case 'warning':
       return {
         rail: 'bg-amber-300/25',
-        icon: 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]',
-        badge: 'border-[#D9C39D] bg-[#FAF3E6] text-[#7A5C33]',
+        icon: 'border-indigo-200 bg-[#EEF2FF] text-slate-700',
+        badge: 'border-indigo-200 bg-[#EEF2FF] text-slate-700',
       };
     case 'accent':
       return {
-        rail: 'bg-[#E7DED2]',
-        icon: 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]',
-        badge: 'border-[#D8CCBD] bg-[#F6EFE4] text-[#7A5C33]',
+        rail: 'bg-[#E2E8F0]',
+        icon: 'border-indigo-200 bg-[#EEF2FF] text-slate-700',
+        badge: 'border-indigo-200 bg-[#EEF2FF] text-slate-700',
       };
     default:
       return {
-        rail: 'bg-[#EFE7DC]',
-        icon: 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700',
-        badge: 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700',
+        rail: 'bg-[#F1F5F9]',
+        icon: 'border-slate-300 bg-white text-slate-700',
+        badge: 'border-slate-300 bg-white text-slate-700',
       };
   }
 }
@@ -355,7 +355,7 @@ export function RecordActivityTimeline({
 
       <div className="mt-6 space-y-4">
         {activities.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E7DED2] bg-white/[0.02] p-4 text-sm text-slate-500">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/[0.02] p-4 text-sm text-slate-500">
             No timeline activity yet.
           </div>
         ) : (
@@ -381,7 +381,7 @@ export function RecordActivityTimeline({
                   <Icon className="h-5 w-5" />
                 </div>
 
-                <div className="rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
+                <div className="rounded-[24px] border border-slate-300 bg-white p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -404,7 +404,7 @@ export function RecordActivityTimeline({
 
                   <div className="mt-4 text-xs uppercase tracking-[0.2em] text-slate-500">{footerParts.join(' - ')}</div>
 
-                  <details className="mt-4 group rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-3">
+                  <details className="mt-4 group rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-700 transition hover:text-slate-900">
                       <span>Event details</span>
                       <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
@@ -413,7 +413,7 @@ export function RecordActivityTimeline({
                       {presentation.details.map((row) => (
                         <div
                           key={`${activity.id}-${row.label}`}
-                          className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3"
+                          className="rounded-2xl border border-slate-300 bg-white px-4 py-3"
                         >
                           <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{row.label}</div>
                           <div className="mt-2 text-sm leading-6 text-slate-700">{row.value}</div>
@@ -422,7 +422,7 @@ export function RecordActivityTimeline({
                     </div>
 
                     {hasMetadata(activity.meta) ? (
-                      <details className="mt-4 group rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] px-4 py-3">
+                      <details className="mt-4 group rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3">
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-600 transition hover:text-slate-700">
                           <span>Technical details</span>
                           <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />

@@ -1,30 +1,30 @@
-import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { buttonStyles } from '../ui/Button';
 
 export function FinalCtaSection() {
   return (
-    <section className="section-shell py-28">
-      <div className="relative overflow-hidden rounded-[32px] border border-[#E7DED2] bg-[#FFFDFC] px-6 py-12 shadow-panel sm:px-10 lg:px-14">
-        <div className="absolute inset-0 bg-hero-radial opacity-90" />
-        <div className="absolute inset-0 grid-overlay opacity-20" />
-        <div className="relative max-w-3xl space-y-6">
-          <div className="inline-flex rounded-full border border-accent-blue/25 bg-accent-blue/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-accent-blue">
-            Ready to launch
-          </div>
-          <h2 className="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-            Turn the first version of CoreFlow into a product people want to use.
+    <section id="pricing" className="pt-16">
+      <div className="bg-indigo-950 py-14">
+        <div className="section-shell text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200">Final CTA</p>
+          <h2 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">
+            Ready to run your operations in one workspace?
           </h2>
-          <p className="text-lg leading-8 text-slate-700">
-            The landing experience, auth flow, workspace onboarding, CRM mode selection, and dashboard shell are all ready for the next phase.
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-indigo-100">
+            Start with records, imports, and AI voice workflows in a single modern platform.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link to="/signup" className={buttonStyles('primary', 'lg')}>
-              Create your workspace
-              <ArrowRight className="h-4 w-4" />
+
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/signup"
+              className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+            >
+              Book a Demo
             </Link>
-            <Link to="/signin" className={buttonStyles('secondary', 'lg')}>
-              Sign into CoreFlow
+            <Link
+              to="/signin"
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-indigo-300 bg-indigo-900 px-5 text-sm font-semibold text-white transition hover:bg-indigo-800"
+            >
+              Start Free Trial
             </Link>
           </div>
         </div>

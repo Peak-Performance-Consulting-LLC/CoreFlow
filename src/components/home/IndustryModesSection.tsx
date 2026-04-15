@@ -1,41 +1,60 @@
-import { motion } from 'framer-motion';
-import { crmOptions } from '../../lib/constants';
-import { Card } from '../ui/Card';
-import { SectionHeading } from '../ui/SectionHeading';
+import { Building2, Fuel, Headset, House, UtensilsCrossed } from 'lucide-react';
+
+const industryModes = [
+  {
+    title: 'Real Estate',
+    description: 'Manage properties, clients, and qualification workflows with AI-powered lead capture.',
+    icon: House,
+  },
+  {
+    title: 'Gas Station',
+    description: 'Track service requests, fuel monitoring, and recurring customer support issues.',
+    icon: Fuel,
+  },
+  {
+    title: 'Restaurants',
+    description: 'Handle reservations, inbound orders, and customer service follow-ups from one queue.',
+    icon: UtensilsCrossed,
+  },
+  {
+    title: 'Retail',
+    description: 'Route product inquiries, returns, and store operations into one shared workspace.',
+    icon: Building2,
+  },
+  {
+    title: 'Service Teams',
+    description: 'Manage dispatch calls, call outcomes, and field updates without switching tools.',
+    icon: Headset,
+  },
+];
 
 export function IndustryModesSection() {
   return (
-    <section id="modes" className="section-shell pt-28">
-      <div className="grid gap-10 xl:grid-cols-[0.9fr_1.1fr] xl:items-end">
-        <SectionHeading
-          eyebrow="Industry Modes"
-          title="One platform. Five launch-ready CRM modes."
-          description="Users choose the mode that matches their business during onboarding, but everything still starts from the same shared product foundation."
-        />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {crmOptions.map((crm, index) => {
-            const Icon = crm.icon;
+    <section id="industries" className="section-shell pt-16">
+      <div className="mx-auto max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-card sm:p-8">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Industry Modes</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold text-slate-900">
+            Tailored workspaces for every industry
+          </h2>
+        </div>
 
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {industryModes.map((mode) => {
+            const Icon = mode.icon;
             return (
-              <motion.div
-                key={crm.value}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.45, delay: index * 0.05 }}
+              <article
+                key={mode.title}
+                className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-indigo-200 hover:bg-indigo-50/50"
               >
-                <Card className="relative h-full overflow-hidden p-5">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${crm.accent} opacity-80`} />
-                  <div className="absolute inset-[1px] rounded-[27px] bg-[#FFFDFC]" />
-                  <div className="relative">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-accent-blue">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mt-6 font-display text-2xl font-semibold text-slate-900">{crm.label}</h3>
-                    <p className="mt-2 text-sm leading-7 text-slate-600">{crm.description}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-indigo-600">
+                    <Icon className="h-4 w-4" />
                   </div>
-                </Card>
-              </motion.div>
+                  <h3 className="text-sm font-semibold text-slate-900">{mode.title}</h3>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{mode.description}</p>
+              </article>
             );
           })}
         </div>

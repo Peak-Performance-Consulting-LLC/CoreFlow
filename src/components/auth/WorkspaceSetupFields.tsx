@@ -51,7 +51,7 @@ export function WorkspaceSetupFields({
       </div>
 
       {showSlugPreview && hasSlug ? (
-        <div className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3">
+        <div className="rounded-2xl border border-slate-300 bg-white px-4 py-3">
           <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Workspace URL preview</div>
           <div className="mt-1 text-sm font-medium text-slate-800">{previewUrl}</div>
         </div>

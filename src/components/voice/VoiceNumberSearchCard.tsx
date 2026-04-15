@@ -45,8 +45,8 @@ function SuggestionMenu<TSuggestion>({
 }: SuggestionMenuProps<TSuggestion>) {
   if (items.length === 0) {
     return (
-      <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 rounded-[24px] border border-[#E7DED2] bg-[#F7F4EE] p-3 shadow-2xl backdrop-blur-xl">
-        <div className="rounded-2xl border border-dashed border-[#E7DED2] px-4 py-3 text-sm text-slate-500">
+      <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 rounded-[24px] border border-slate-300 bg-slate-50 p-3 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500">
           {emptyText}
         </div>
       </div>
@@ -54,7 +54,7 @@ function SuggestionMenu<TSuggestion>({
   }
 
   return (
-    <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 overflow-hidden rounded-[24px] border border-accent-blue/25 bg-[#F7F4EE] shadow-2xl backdrop-blur-xl">
+    <div className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-30 overflow-hidden rounded-[24px] border border-accent-blue/25 bg-slate-50 shadow-2xl backdrop-blur-xl">
       <div className="max-h-72 overflow-y-auto p-2">
         {items.map((item) => (
           <button
@@ -189,10 +189,10 @@ export function VoiceNumberSearchCard({
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">City</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-white px-4 transition ${
                 activeField === 'city'
-                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-[#E7DED2]'
+                  ? 'border-accent-blue/45 bg-white shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-slate-300'
               }`}
             >
               <input
@@ -229,10 +229,10 @@ export function VoiceNumberSearchCard({
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">State</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-white px-4 transition ${
                 activeField === 'state'
-                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-[#E7DED2]'
+                  ? 'border-accent-blue/45 bg-white shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-slate-300'
               }`}
             >
               <input
@@ -266,10 +266,10 @@ export function VoiceNumberSearchCard({
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">Area code</span>
             <div
-              className={`relative flex h-12 items-center rounded-2xl border bg-[#FFFDFC] px-4 transition ${
+              className={`relative flex h-12 items-center rounded-2xl border bg-white px-4 transition ${
                 activeField === 'areaCode'
-                  ? 'border-accent-blue/45 bg-[#FFFDFC] shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
-                  : 'border-[#E7DED2]'
+                  ? 'border-accent-blue/45 bg-white shadow-[0_0_0_1px_rgba(34,211,238,0.12)]'
+                  : 'border-slate-300'
               }`}
             >
               <input
@@ -313,7 +313,7 @@ export function VoiceNumberSearchCard({
                   phone_number_type: event.target.value as 'local' | 'toll_free' | '',
                 })
               }
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             >
               <option value="">Any</option>
               <option value="local">Local</option>
@@ -329,7 +329,7 @@ export function VoiceNumberSearchCard({
               max={20}
               value={filters.limit ?? 10}
               onChange={(event) => onFilterChange({ limit: Number(event.target.value) || 10 })}
-              className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
             />
           </label>
         </div>
@@ -345,7 +345,7 @@ export function VoiceNumberSearchCard({
           results.length > 0 ? (
             <div className="grid gap-4 lg:grid-cols-2">
               {results.map((result) => (
-                <div key={result.phoneNumber} className="rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] p-5">
+                <div key={result.phoneNumber} className="rounded-[28px] border border-slate-300 bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="font-display text-2xl text-slate-900">{result.phoneNumber}</div>
@@ -377,7 +377,7 @@ export function VoiceNumberSearchCard({
               ))}
             </div>
           ) : (
-            <div className="rounded-[28px] border border-[#E7DED2] bg-[#FFFDFC] px-5 py-4 text-sm text-slate-600">
+            <div className="rounded-[28px] border border-slate-300 bg-white px-5 py-4 text-sm text-slate-600">
               No US numbers matched the current filters. Try a different area code, city, or number type.
             </div>
           )

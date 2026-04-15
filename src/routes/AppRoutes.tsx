@@ -12,8 +12,11 @@ import { RecordsPage } from '../pages/RecordsPage';
 import { RecordCreatePage } from '../pages/RecordCreatePage';
 import { RecordDetailPage } from '../pages/RecordDetailPage';
 import { ImportsPage } from '../pages/ImportsPage';
-import { VoiceSettingsPage } from '../pages/VoiceSettingsPage';
 import { VoiceOpsPage } from '../pages/VoiceOpsPage';
+import { VoiceNumbersPage } from '../pages/VoiceNumbersPage';
+import { VoiceNewNumberPage } from '../pages/VoiceNewNumberPage';
+import { VoiceAssistantsPage } from '../pages/VoiceAssistantsPage';
+import { VoiceNewAssistantPage } from '../pages/VoiceNewAssistantPage';
 
 export function AppRoutes() {
   return (
@@ -32,15 +35,44 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/:crmType" element={<DashboardPage />} />
+        <Route path="/voice" element={<Navigate to="/voice/ops" replace />} />
         <Route
           path="/settings/voice"
+          element={<Navigate to="/voice/numbers" replace />}
+        />
+        <Route path="/voice/ops" element={<VoiceOpsPage />} />
+        <Route
+          path="/voice/numbers"
           element={(
             <CrmWorkspaceProvider>
-              <VoiceSettingsPage />
+              <VoiceNumbersPage />
             </CrmWorkspaceProvider>
           )}
         />
-        <Route path="/voice" element={<VoiceOpsPage />} />
+        <Route
+          path="/voice/numbers/new"
+          element={(
+            <CrmWorkspaceProvider>
+              <VoiceNewNumberPage />
+            </CrmWorkspaceProvider>
+          )}
+        />
+        <Route
+          path="/voice/assistants"
+          element={(
+            <CrmWorkspaceProvider>
+              <VoiceAssistantsPage />
+            </CrmWorkspaceProvider>
+          )}
+        />
+        <Route
+          path="/voice/assistants/new"
+          element={(
+            <CrmWorkspaceProvider>
+              <VoiceNewAssistantPage />
+            </CrmWorkspaceProvider>
+          )}
+        />
         <Route element={<CrmWorkspaceRoute />}>
           <Route path="/records" element={<RecordsPage />} />
           <Route path="/records/new" element={<RecordCreatePage />} />

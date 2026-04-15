@@ -90,16 +90,16 @@ export function VoiceAgentFieldMappingEditor({
       </div>
 
       {rows.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5 text-sm text-slate-600">
+        <div className="mt-6 rounded-3xl border border-slate-300 bg-white p-5 text-sm text-slate-600">
           No field mappings yet. Add at least one field before activating an assistant.
         </div>
       ) : (
         <div className="mt-6 space-y-4">
           {rows.map((row, index) => (
-            <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-5">
+            <div key={`${row.source_key}-${index}`} className="rounded-3xl border border-slate-300 bg-white p-5">
               <div className="grid gap-4 xl:grid-cols-2">
-                <label className="flex flex-col gap-2 text-sm text-slate-700">
-                  <span className="font-medium">Source key</span>
+                <label className="flex flex-col gap-2 text-sm text-slate-800">
+                  <span className="font-semibold">Source key</span>
                   <input
                     value={row.source_key}
                     onChange={(event) =>
@@ -108,13 +108,13 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, source_key: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                     placeholder="service_needed"
                   />
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-700">
-                  <span className="font-medium">Source label</span>
+                <label className="flex flex-col gap-2 text-sm text-slate-800">
+                  <span className="font-semibold">Source label</span>
                   <input
                     value={row.source_label}
                     onChange={(event) =>
@@ -123,14 +123,14 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, source_label: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                     placeholder="Service needed"
                   />
                 </label>
               </div>
 
-              <label className="mt-4 flex flex-col gap-2 text-sm text-slate-700">
-                <span className="font-medium">Source description</span>
+              <label className="mt-4 flex flex-col gap-2 text-sm text-slate-800">
+                <span className="font-semibold">Source description</span>
                 <textarea
                   value={row.source_description ?? ''}
                   onChange={(event) =>
@@ -140,14 +140,14 @@ export function VoiceAgentFieldMappingEditor({
                       ),
                     )}
                   rows={2}
-                  className="rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900"
+                  className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   placeholder="Explain what the assistant should collect for this field."
                 />
               </label>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-4">
-                <label className="flex flex-col gap-2 text-sm text-slate-700">
-                  <span className="font-medium">Value type</span>
+                <label className="flex flex-col gap-2 text-sm text-slate-800">
+                  <span className="font-semibold">Value type</span>
                   <select
                     value={row.source_value_type}
                     onChange={(event) =>
@@ -158,7 +158,7 @@ export function VoiceAgentFieldMappingEditor({
                             : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   >
                     {sourceValueTypeOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -168,8 +168,8 @@ export function VoiceAgentFieldMappingEditor({
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-700">
-                  <span className="font-medium">Target type</span>
+                <label className="flex flex-col gap-2 text-sm text-slate-800">
+                  <span className="font-semibold">Target type</span>
                   <select
                     value={row.target_type}
                     onChange={(event) =>
@@ -184,15 +184,15 @@ export function VoiceAgentFieldMappingEditor({
                             : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   >
                     <option value="core">Core</option>
                     <option value="custom">Custom</option>
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-slate-700">
-                  <span className="font-medium">Target field</span>
+                <label className="flex flex-col gap-2 text-sm text-slate-800">
+                  <span className="font-semibold">Target field</span>
                   <select
                     value={row.target_key}
                     onChange={(event) =>
@@ -201,7 +201,7 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, target_key: event.target.value } : item
                         ),
                       )}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   >
                     {row.target_type === 'core'
                       ? coreTargetOptions.map((option) => (
@@ -217,7 +217,7 @@ export function VoiceAgentFieldMappingEditor({
                   </select>
                 </label>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-700">
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700">
                   <input
                     type="checkbox"
                     checked={row.is_required}
@@ -227,7 +227,7 @@ export function VoiceAgentFieldMappingEditor({
                           itemIndex === index ? { ...item, is_required: event.target.checked } : item
                         ),
                       )}
-                    className="h-4 w-4 rounded border-[#D8CCBD] bg-transparent"
+                    className="h-4 w-4 rounded border-indigo-200 bg-transparent"
                   />
                   Required field
                 </label>

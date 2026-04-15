@@ -1,16 +1,38 @@
 import { cn } from '../../lib/utils';
 
-export function LogoMark({ className }: { className?: string }) {
+interface LogoMarkProps {
+  className?: string;
+  showSubtitle?: boolean;
+  theme?: 'light' | 'dark';
+}
+
+export function LogoMark({ className, showSubtitle = true, theme = 'light' }: LogoMarkProps) {
+  const isDark = theme === 'dark';
+
   return (
-    <div className={cn('flex items-center gap-3', className)}>
-      <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-[#D8CCBD] bg-[#F7F4EE] shadow-glow">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#D8B57E] via-[#B9925A] to-[#7A5C33]" />
-        <div className="absolute inset-[1px] rounded-[15px] bg-[#FFFDFC]" />
-        <div className="relative h-5 w-5 rounded-full bg-gradient-to-br from-[#C6A56B] to-[#7A5C33] shadow-[0_8px_18px_rgba(122,92,51,0.22)]" />
+    <div className={cn('flex items-center gap-2.5', className)}>
+      <div className={cn('relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl', isDark ? 'shadow-none' : 'shadow-glow')}>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700" />
+        <div className="absolute inset-[1.5px] rounded-[10px] bg-white/10" />
+        <svg
+          className="relative h-5 w-5 text-white"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M14 6.5C13 5.5 11.5 5 10 5C7.2 5 5 7.2 5 10C5 12.8 7.2 15 10 15C11.5 15 13 14.5 14 13.5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
       </div>
       <div>
-        <div className="font-display text-lg font-semibold tracking-wide text-slate-900">CoreFlow</div>
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-600">Shared CRM Platform</div>
+        <div className={cn('font-display text-[15px] font-semibold leading-tight', isDark ? 'text-white' : 'text-slate-900')}>CoreFlow</div>
+        {showSubtitle ? (
+          <div className={cn('text-[10px] uppercase tracking-widest', isDark ? 'text-slate-500' : 'text-slate-400')}>Shared CRM Platform</div>
+        ) : null}
       </div>
     </div>
   );

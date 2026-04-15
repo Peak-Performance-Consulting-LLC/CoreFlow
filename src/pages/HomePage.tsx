@@ -6,14 +6,14 @@ import { HomeNavbar } from '../components/home/HomeNavbar';
 import { HowItWorksSection } from '../components/home/HowItWorksSection';
 import { IndustryModesSection } from '../components/home/IndustryModesSection';
 import { TestimonialsSection } from '../components/home/TestimonialsSection';
-import { AnimatedBackground } from '../components/ui/AnimatedBackground';
+import { TrustedBySection } from '../components/home/TrustedBySection';
 
 export function HomePage() {
   return (
-    <div className="relative overflow-hidden">
-      <AnimatedBackground className="opacity-70" />
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50/40 to-slate-100/60">
       <HomeNavbar />
       <HeroSection />
+      <TrustedBySection />
       <FeaturesSection />
       <IndustryModesSection />
       <HowItWorksSection />

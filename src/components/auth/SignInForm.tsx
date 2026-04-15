@@ -130,7 +130,7 @@ export function SignInForm() {
             type="checkbox"
             checked={rememberMe}
             onChange={(event) => setRememberMe(event.target.checked)}
-            className="h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
+            className="h-4 w-4 rounded border-indigo-200 bg-white text-accent-blue focus:ring-accent-blue"
           />
           Remember me
         </label>

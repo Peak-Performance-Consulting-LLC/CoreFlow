@@ -44,18 +44,18 @@ export function CRMSelector({
               className={cn(
                 'group relative overflow-hidden rounded-[26px] border p-5 text-left transition',
                 isSelected
-                  ? 'border-accent-blue/45 bg-[#FCF7F0] shadow-glow'
-                  : 'border-[#E7DED2] bg-[#FFFDFC] hover:-translate-y-[2px] hover:border-[#D8CCBD] hover:shadow-panel',
+                  ? 'border-accent-blue/45 bg-slate-50 shadow-glow'
+                  : 'border-slate-300 bg-white hover:-translate-y-[2px] hover:border-indigo-200 hover:shadow-panel',
               )}
             >
               <div className={cn('absolute inset-0 bg-gradient-to-br opacity-25', option.accent)} />
-              <div className={cn('absolute inset-[1px] rounded-[25px]', isSelected ? 'bg-[#FCF7F0]' : 'bg-[#FFFDFC]')} />
+              <div className={cn('absolute inset-[1px] rounded-[25px]', isSelected ? 'bg-slate-50' : 'bg-white')} />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
                   <div
                     className={cn(
                       'flex h-12 w-12 items-center justify-center rounded-2xl border text-accent-blue transition',
-                      isSelected ? 'border-accent-blue/30 bg-accent-blue/10' : 'border-[#E7DED2] bg-[#F7F4EE]',
+                      isSelected ? 'border-accent-blue/30 bg-accent-blue/10' : 'border-slate-300 bg-slate-50',
                     )}
                   >
                     <Icon className="h-5 w-5" />

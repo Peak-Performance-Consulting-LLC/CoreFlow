@@ -28,14 +28,14 @@ export function VoiceCallArtifactsPanel({ call, artifacts }: VoiceCallArtifactsP
       <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Artifacts</div>
       <div className="mt-4 space-y-4">
         {artifacts.length === 0 ? (
-          <div className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+          <div className="rounded-3xl border border-slate-300 bg-white p-4">
             <div className="text-sm text-slate-700">Raw message history</div>
             <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">
               {call.message_history ? JSON.stringify(call.message_history, null, 2) : 'No message history stored.'}
             </pre>
           </div>
         ) : artifacts.map((artifact) => (
-          <div key={artifact.id} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+          <div key={artifact.id} className="rounded-3xl border border-slate-300 bg-white p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="font-medium text-slate-900">{artifact.artifact_type}</div>
               <div className="text-xs text-slate-500">{artifact.status}</div>

@@ -1,44 +1,43 @@
-import { Menu, PlayCircle } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { buttonStyles } from '../ui/Button';
 import { LogoMark } from '../ui/LogoMark';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
-  { label: 'Modes', href: '#modes' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Testimonials', href: '#testimonials' },
+  { label: 'Industries', href: '#industries' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Contact', href: '#contact' },
 ];
 
 export function HomeNavbar() {
   return (
-    <header className="section-shell sticky top-0 z-40 pt-6">
-      <div className="glass-panel flex items-center justify-between gap-6 px-4 py-4 sm:px-6">
-        <LogoMark />
-        <nav className="hidden items-center gap-6 text-sm text-slate-700 lg:flex">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <div className="section-shell flex h-16 items-center justify-between">
+        <LogoMark showSubtitle={false} />
+
+        <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
           {navLinks.map((link) => (
             <a key={link.label} href={link.href} className="transition hover:text-slate-900">
               {link.label}
             </a>
           ))}
         </nav>
-        <div className="hidden items-center gap-3 sm:flex">
-          <Link to="/signin" className={buttonStyles('ghost', 'sm')}>
-            Sign In
-          </Link>
-          <Link to="/signup" className={buttonStyles('primary', 'sm')}>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/signup"
+            className="hidden h-9 items-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-700 md:inline-flex"
+          >
             Get Started
           </Link>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-600 md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
-        <button className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-slate-700 lg:hidden">
-          <Menu className="h-5 w-5" />
-        </button>
-      </div>
-      <div className="mt-3 flex justify-center sm:hidden">
-        <a href="#hero" className="inline-flex items-center gap-2 rounded-full border border-[#E7DED2] bg-[#F7F4EE] px-4 py-2 text-xs text-slate-700">
-          <PlayCircle className="h-4 w-4" />
-          Explore the launch preview
-        </a>
       </div>
     </header>
   );

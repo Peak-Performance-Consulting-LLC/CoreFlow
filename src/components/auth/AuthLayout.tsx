@@ -33,7 +33,7 @@ export function AuthLayout({
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="hidden self-start rounded-[32px] border border-[#E7DED2] bg-[#FFFDFC] p-8 shadow-panel xl:sticky xl:top-8 xl:flex xl:flex-col"
+            className="hidden self-start rounded-[32px] border border-slate-300 bg-white p-8 shadow-panel xl:sticky xl:top-8 xl:flex xl:flex-col"
           >
             {leftPanel ?? (
               <>
@@ -58,8 +58,8 @@ export function AuthLayout({
                     const Icon = option.icon;
 
                     return (
-                      <div key={option.value} className="rounded-[24px] border border-[#E7DED2] bg-[#FFFDFC] p-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E7DED2] bg-[#F7F4EE] text-accent-blue">
+                      <div key={option.value} className="rounded-[24px] border border-slate-300 bg-white p-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 text-accent-blue">
                           <Icon className="h-4 w-4" />
                         </div>
                         <h3 className="mt-4 font-display text-lg text-slate-900">{option.label}</h3>
@@ -87,7 +87,7 @@ export function AuthLayout({
                 <LogoMark />
               </div>
               <div className="space-y-4">
-                <div className="inline-flex rounded-full border border-[#E7DED2] bg-[#F7F4EE] px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-700">
+                <div className="inline-flex rounded-full border border-slate-300 bg-slate-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-700">
                   {eyebrow}
                 </div>
                 <div>
@@ -98,7 +98,7 @@ export function AuthLayout({
                 </div>
               </div>
               {children}
-              <div className="border-t border-[#E7DED2] pt-6 text-sm text-slate-600">{footer}</div>
+              <div className="border-t border-slate-300 pt-6 text-sm text-slate-600">{footer}</div>
             </div>
           </motion.div>
         </div>

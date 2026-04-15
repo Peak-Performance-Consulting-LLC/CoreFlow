@@ -193,13 +193,13 @@ export function RecordDetailPage() {
 
   return (
     <WorkspaceLayout workspace={workspace} onSignOut={handleSignOut}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div>
           <Link to="/records" className="text-sm text-accent-blue transition hover:text-accent-blue">
             Back to records
           </Link>
-          <h2 className="mt-2 font-display text-4xl text-slate-900">{visibleDetail?.record.title ?? 'Record details'}</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600">
+          <h2 className="mt-2 font-display text-3xl text-slate-900">{visibleDetail?.record.title ?? 'Record details'}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
             Edit fixed fields, dynamic metadata fields, stage, notes, tasks, and timeline in one shared view.
           </p>
         </div>
@@ -209,11 +209,11 @@ export function RecordDetailPage() {
         ) : null}
 
         {configError && !config ? (
-          <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{configError}</Card>
+          <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{configError}</Card>
         ) : null}
 
         {detailError && !visibleDetail ? (
-          <Card className="border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">{detailError}</Card>
+          <Card className="border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{detailError}</Card>
         ) : null}
 
         {config && visibleDetail ? (
@@ -255,7 +255,7 @@ export function RecordDetailPage() {
                   <select
                     value={selectedStageId}
                     onChange={(event) => setSelectedStageId(event.target.value)}
-                    className="h-12 rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 text-sm text-slate-900"
+                    className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
                   >
                     <option value="">Select stage</option>
                     {stageOptions.map((stage) => (

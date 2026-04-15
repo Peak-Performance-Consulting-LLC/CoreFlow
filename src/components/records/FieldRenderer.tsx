@@ -38,10 +38,10 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
           onChange={(event) => onChange(event.target.value)}
           placeholder={definition.placeholder ?? ''}
           className={cn(
-            'rounded-2xl border bg-[#FFFDFC] px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 transition',
+            'rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 transition',
             error
               ? 'border-rose-400/60'
-              : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
+              : 'border-slate-300 focus:border-accent-blue/45 focus:bg-white',
           )}
         />
         {error ? <span className="text-xs text-rose-300">{error}</span> : null}
@@ -52,7 +52,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
 
   if (definition.field_type === 'boolean') {
     return (
-      <label className="flex items-center justify-between rounded-2xl border border-[#E7DED2] bg-[#FFFDFC] px-4 py-3 text-sm text-slate-700">
+      <label className="flex items-center justify-between rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700">
         <div>
           <FieldLabel definition={definition} />
           {definition.help_text ? <div className="mt-1 text-xs text-slate-500">{definition.help_text}</div> : null}
@@ -61,7 +61,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
           type="checkbox"
           checked={Boolean(value)}
           onChange={(event) => onChange(event.target.checked)}
-          className="h-4 w-4 rounded border-[#D8CCBD] bg-[#FFFDFC] text-accent-blue focus:ring-accent-blue"
+          className="h-4 w-4 rounded border-indigo-200 bg-white text-accent-blue focus:ring-accent-blue"
         />
       </label>
     );
@@ -75,10 +75,10 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
           value={typeof value === 'string' ? value : ''}
           onChange={(event) => onChange(event.target.value || null)}
           className={cn(
-            'h-12 rounded-2xl border bg-[#FFFDFC] px-4 text-sm text-slate-900 transition',
+            'h-12 rounded-2xl border bg-white px-4 text-sm text-slate-900 transition',
             error
               ? 'border-rose-400/60'
-              : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
+              : 'border-slate-300 focus:border-accent-blue/45 focus:bg-white',
           )}
         >
           <option value="">Select {definition.label}</option>
@@ -121,7 +121,7 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
                   'rounded-full border px-3 py-2 text-sm transition',
                   isSelected
                     ? 'border-accent-blue/40 bg-accent-blue/10 text-accent-blue'
-                    : 'border-[#E7DED2] bg-[#FFFDFC] text-slate-700 hover:border-[#D8CCBD] hover:text-slate-900',
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-200 hover:text-slate-900',
                 )}
               >
                 {option}
@@ -143,10 +143,10 @@ export function FieldRenderer({ definition, value, error, onChange }: FieldRende
         onChange={(event) => onChange(event.target.value)}
         placeholder={definition.placeholder ?? ''}
         className={cn(
-          'h-12 rounded-2xl border bg-[#FFFDFC] px-4 text-sm text-slate-900 placeholder:text-slate-500 transition',
+          'h-12 rounded-2xl border bg-white px-4 text-sm text-slate-900 placeholder:text-slate-500 transition',
           error
             ? 'border-rose-400/60'
-            : 'border-[#E7DED2] focus:border-accent-blue/45 focus:bg-[#FFFDFC]',
+            : 'border-slate-300 focus:border-accent-blue/45 focus:bg-white',
         )}
       />
       {error ? <span className="text-xs text-rose-300">{error}</span> : null}

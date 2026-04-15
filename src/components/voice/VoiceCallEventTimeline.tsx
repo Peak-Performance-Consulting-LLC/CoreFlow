@@ -24,7 +24,7 @@ export function VoiceCallEventTimeline({ events }: VoiceCallEventTimelineProps) 
         {events.length === 0 ? (
           <div className="text-sm text-slate-600">No event history is available for this call yet.</div>
         ) : events.map((event) => (
-          <div key={event.id} className="rounded-3xl border border-[#E7DED2] bg-[#FFFDFC] p-4">
+          <div key={event.id} className="rounded-3xl border border-slate-300 bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="font-medium text-slate-900">{event.event_type}</div>
               <div className="text-xs text-slate-500">{formatDateTime(event.occurred_at)}</div>
