@@ -1129,6 +1129,36 @@ export async function saveVoiceCallArtifact(
     .single();
 
   if (error) {
+    if (isUniqueViolation(error)) {
+      const { data: conflict, error: conflictError } = await db
+        .from('voice_call_artifacts')
+        .select(VOICE_CALL_ARTIFACT_COLUMNS)
+        .eq('workspace_id', workspaceId)
+        .eq('voice_call_id', voiceCallId)
+        .eq('artifact_type', params.artifactType)
+        .maybeSingle();
+
+      if (conflictError) {
+        throwDbError('saveVoiceCallArtifact.insertThenRefetch', conflictError);
+      }
+
+      if (!conflict) {
+        throwDbError('saveVoiceCallArtifact.insertThenRefetch', error);
+      }
+
+      const { data: updatedConflict, error: updateConflictError } = await db
+        .from('voice_call_artifacts')
+        .update(patch)
+        .eq('id', conflict.id)
+        .select(VOICE_CALL_ARTIFACT_COLUMNS)
+        .single();
+
+      if (updateConflictError) {
+        throwDbError('saveVoiceCallArtifact.updateAfterConflict', updateConflictError);
+      }
+
+      return updatedConflict as VoiceCallArtifactRow;
+    }
     throwDbError('saveVoiceCallArtifact.insert', error);
   }
 

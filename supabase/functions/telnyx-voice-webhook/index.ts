@@ -509,60 +509,85 @@ async function tryCreateLeadSync(
   voiceCall: VoiceCallRow,
   logContext: any
 ) {
-  if (voiceCall.lead_creation_status === 'created' || voiceCall.lead_creation_status === 'failed') {
-    return;
+  const currentCall = await findVoiceCallById(db, workspaceId, voiceCall.id);
+
+  if (
+    currentCall.record_id ||
+    currentCall.lead_creation_status === 'created' ||
+    currentCall.lead_creation_status === 'failed'
+  ) {
+    return currentCall;
   }
 
   try {
+    const actorUserId = await resolveWorkspaceVoiceActorUserId(db, workspaceId);
     const leadCreateInput = await buildLeadCreateInputFromVoiceCall({
       db,
       workspaceId,
-      call: voiceCall,
+      call: currentCall,
     });
 
-    if (!leadCreateInput) {
-      console.log('[telnyx-voice-webhook] sync lead creation: mapping returned null', {
-        ...logContext,
-        voiceCallId: voiceCall.id
-      });
-      await applyLeadFailed(db, {
-        workspaceId,
-        voiceCallId: voiceCall.id,
-        errorMessage: 'Mapping failed - could not extract robust lead payload',
-        failedAt: new Date().toISOString()
-      });
-      return;
-    }
+    const created = await createLeadFromVoiceCall({
+      db,
+      workspaceId,
+      actorUserId,
+      mappedInput: leadCreateInput,
+    });
 
-    const { lead, isNewLead } = await createLeadFromVoiceCall(db, workspaceId, leadCreateInput);
-    
     await applyLeadCreated(db, {
       workspaceId,
-      voiceCallId: voiceCall.id,
-      leadId: lead.id,
-      createdOrMatchedLeadAt: new Date().toISOString() // Or pass exact time
+      voiceCallId: currentCall.id,
+      recordId: created.recordId,
+      leadCreatedAt: new Date().toISOString(),
     });
 
     console.log('[telnyx-voice-webhook] sync lead creation successful', {
       ...logContext,
-      voiceCallId: voiceCall.id,
-      leadId: lead.id,
-      isNewLead
+      voiceCallId: currentCall.id,
+      recordId: created.recordId,
     });
+
+    return findVoiceCallById(db, workspaceId, currentCall.id);
   } catch (error) {
     console.error('[telnyx-voice-webhook] sync lead creation failed', {
       ...logContext,
-      voiceCallId: voiceCall.id,
-      error: error instanceof Error ? error.message : String(error)
+      voiceCallId: currentCall.id,
+      error: error instanceof Error ? error.message : String(error),
     });
-    // Record failure in DB so finalization knows it happened
     await applyLeadFailed(db, {
       workspaceId,
-      voiceCallId: voiceCall.id,
+      voiceCallId: currentCall.id,
       errorMessage: error instanceof Error ? error.message : 'Unknown lead creation error',
-      failedAt: new Date().toISOString()
     });
+
+    return findVoiceCallById(db, workspaceId, currentCall.id);
   }
+}
+
+function deriveSyncOutcomeStatus(call: VoiceCallRow | null | undefined) {
+  if (call?.record_id || call?.lead_creation_status === 'created') {
+    return 'lead_created' as const;
+  }
+
+  if (call?.lead_creation_status === 'failed') {
+    return 'crm_failed' as const;
+  }
+
+  return null;
+}
+
+function deriveSyncOutcomeReason(call: VoiceCallRow | null | undefined, pendingReason: string) {
+  const outcomeStatus = deriveSyncOutcomeStatus(call);
+
+  if (outcomeStatus === 'lead_created') {
+    return 'lead_created';
+  }
+
+  if (outcomeStatus === 'crm_failed') {
+    return 'crm_write_failed';
+  }
+
+  return pendingReason;
 }
 
 async function finalizeAndTriggerActions(params: {
@@ -965,7 +990,9 @@ Deno.serve(async (request) => {
       ? 'initiated'
       : normalizedEvent.eventType === 'call.answered'
         ? 'answered'
-        : normalizedEvent.eventType === 'call.conversation.ended'
+        : normalizedEvent.eventType === 'call.ai_gather.ended' ||
+            normalizedEvent.eventType === 'call.gather.ended' ||
+            normalizedEvent.eventType === 'call.conversation.ended'
           ? 'gathering'
           : 'ended';
 
@@ -1085,7 +1112,7 @@ Deno.serve(async (request) => {
       await setVoiceCallRuntimeMode(db, {
         workspaceId,
         voiceCallId: call.id,
-        runtimeMode: 'assistant',
+        runtimeMode: 'phase1_fallback',
       });
 
       if (runtimeConfig) {
@@ -1182,6 +1209,7 @@ Deno.serve(async (request) => {
     }
 
     if (
+      normalizedEvent.eventType === 'call.ai_gather.ended' ||
       normalizedEvent.eventType === 'call.gather.ended' ||
       normalizedEvent.eventType === 'call.conversation.ended'
     ) {
@@ -1194,7 +1222,7 @@ Deno.serve(async (request) => {
         messageSummary,
       });
 
-      const gathered = await applyGatherEnded(db, {
+      await applyGatherEnded(db, {
         workspaceId,
         voiceCallId: call.id,
         gatherResult: toJsonValue(normalizedEvent.gatherResult),
@@ -1216,15 +1244,15 @@ Deno.serve(async (request) => {
       }
 
       const refreshedCall = await findVoiceCallById(db, workspaceId, call.id);
+      const outcomeStatus = deriveSyncOutcomeStatus(refreshedCall) ?? 'review_needed';
 
       await finalizeAndTriggerActions({
         db,
         workspaceId,
         voiceCallId: call.id,
-        outcomeStatus: refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created' ? 'lead_created' : 'review_needed',
-        outcomeReason: refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created'
-          ? 'lead_created'
-          : 'assistant_conversation_ended',
+        outcomeStatus,
+        outcomeReason: deriveSyncOutcomeReason(refreshedCall, 'assistant_conversation_ended'),
+        outcomeError: refreshedCall?.outcome_error ?? null,
       });
 
       try {
@@ -1258,30 +1286,16 @@ Deno.serve(async (request) => {
       });
 
       if (!hungup.outcome_status) {
-        let outcomeStatus: 'lead_created' | 'ended_without_lead' = hungup.record_id ? 'lead_created' : 'ended_without_lead';
-
-        if (!hungup.record_id) {
-          const callForLeadCreation = await findVoiceCallById(db, workspaceId, call.id);
-          if (callForLeadCreation) {
-            await tryCreateLeadSync(
-              db,
-              workspaceId,
-              callForLeadCreation,
-              telnyxLogContext
-            );
-            const refreshedCall = await findVoiceCallById(db, workspaceId, call.id);
-            if (refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created') {
-              outcomeStatus = 'lead_created';
-            }
-          }
-        }
+        const refreshedCall = await findVoiceCallById(db, workspaceId, call.id);
+        const outcomeStatus = deriveSyncOutcomeStatus(refreshedCall) ?? 'ended_without_lead';
 
         await finalizeAndTriggerActions({
           db,
           workspaceId,
           voiceCallId: call.id,
-          outcomeStatus: outcomeStatus,
-          outcomeReason: outcomeStatus === 'lead_created' ? 'lead_created' : 'call_hangup_without_lead',
+          outcomeStatus,
+          outcomeReason: deriveSyncOutcomeReason(refreshedCall, 'call_hangup_without_lead'),
+          outcomeError: refreshedCall?.outcome_error ?? null,
         });
       }
 
