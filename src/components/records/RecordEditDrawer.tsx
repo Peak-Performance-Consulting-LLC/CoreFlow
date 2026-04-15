@@ -136,7 +136,7 @@ export function RecordEditDrawer({
         type="button"
         aria-label="Close record editor"
         onClick={onClose}
-        className={`absolute inset-0 bg-white transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-transparent transition duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
 
       <aside

@@ -81,7 +81,7 @@ export function VoiceCallDetailDrawer({
         type="button"
         aria-label="Close voice call details"
         onClick={onClose}
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-transparent"
       />
 
       <aside className="relative z-10 flex h-[min(92vh,980px)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-300 bg-slate-50 shadow-2xl">

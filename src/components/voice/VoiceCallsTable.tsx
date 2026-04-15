@@ -96,7 +96,6 @@ export function VoiceCallsTable({
               >
                 <td className="px-5 py-4 align-top">
                   <div className="font-medium text-slate-900">{call.from_number_e164}</div>
-                  <div className="mt-1 text-[12px] text-slate-500">{call.provider_call_control_id}</div>
                 </td>
                 <td className="px-5 py-4 align-top text-slate-700">{call.phone_number_e164_label ?? call.to_number_e164}</td>
                 <td className="px-5 py-4 align-top text-slate-700">{call.voice_agent_name ?? 'Phase 1 flow'}</td>

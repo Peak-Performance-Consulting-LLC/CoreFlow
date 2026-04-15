@@ -48,7 +48,7 @@ export function RecordListSkeleton({ rows = 6 }: RecordListSkeletonProps) {
 
         <div>
           {Array.from({ length: rows }).map((_, index) => (
-            <div key={index} className={recordListGridClassName + ' border-b border-slate-300 px-5 py-4'}>
+            <div key={index} className={recordListGridClassName + ' border-b border-slate-300 px-5 py-3'}>
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-full bg-[#F1F5F9]" />
                 <div className="min-w-0 flex-1">
@@ -152,7 +152,7 @@ export function RecordList({
       </div>
 
       <div className="overflow-x-auto">
-        <div className={recordListGridClassName + ' border-b border-slate-300 bg-slate-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500'}>
+        <div className={recordListGridClassName + ' border-b border-slate-300 bg-slate-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600'}>
           <div>Lead</div>
           <div>Phone</div>
           <div>Type</div>
@@ -177,19 +177,19 @@ export function RecordList({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-slate-300 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="text-sm text-slate-600">
+      <div className="flex flex-col gap-3 border-t border-slate-300 px-5 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="text-sm text-slate-500">
           Showing {pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}-
           {Math.min(pagination.total, pagination.page * pagination.pageSize)} of {pagination.total} records
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <label className="flex items-center gap-2 text-sm text-slate-500">
             <span>Rows</span>
             <select
               value={pagination.pageSize}
               onChange={(event) => onPageSizeChange(Number(event.target.value))}
-              className="h-10 rounded-2xl border border-slate-300 bg-white px-3 text-sm text-slate-900"
+              className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             >
               {[10, 20, 25].map((option) => (
                 <option key={option} value={option}>
@@ -199,7 +199,7 @@ export function RecordList({
             </select>
           </label>
 
-          <div className="text-sm text-slate-600">
+          <div className="text-sm text-slate-500">
             Page {pagination.page} of {pagination.totalPages}
           </div>
 
