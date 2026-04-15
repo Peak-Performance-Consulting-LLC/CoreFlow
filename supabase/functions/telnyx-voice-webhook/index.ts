@@ -195,10 +195,6 @@ function normalizeGatherLanguage(value: string | null | undefined) {
   return normalized;
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function commandId(action: 'answer' | 'gather_start' | 'hangup', callControlId: string) {
   return `coreflow:voice:${action}:v1:${callControlId}`;
 }
