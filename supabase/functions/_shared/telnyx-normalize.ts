@@ -1,6 +1,7 @@
 export type TelnyxPhase1EventType =
   | 'call.initiated'
   | 'call.answered'
+  | 'call.gather.ended'
   | 'call.conversation.ended'
   | 'call.hangup';
 
@@ -178,6 +179,7 @@ export function isPhase1HandledEvent(eventType: string): eventType is TelnyxPhas
   return (
     eventType === 'call.initiated' ||
     eventType === 'call.answered' ||
+    eventType === 'call.gather.ended' ||
     eventType === 'call.conversation.ended' ||
     eventType === 'call.hangup'
   );
@@ -247,9 +249,9 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
 }
 
 export function extractGatherResult(event: NormalizedTelnyxEvent): GatherExtraction {
-  if (event.eventType !== 'call.conversation.ended') {
+  if (event.eventType !== 'call.gather.ended' && event.eventType !== 'call.conversation.ended') {
     throw new MissingGatherPayloadError(
-      'Gather extraction is only valid for call.conversation.ended.',
+      'Gather extraction is only valid for call.gather.ended or call.conversation.ended.',
     );
   }
 

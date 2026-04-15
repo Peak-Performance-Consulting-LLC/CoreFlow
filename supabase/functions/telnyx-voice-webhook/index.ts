@@ -26,6 +26,8 @@ import {
   applyCallGathering,
   applyCallHangup,
   applyGatherEnded,
+  applyLeadCreated,
+  applyLeadFailed,
   beginEventProcessing,
   findVoiceCallById,
   findWorkspacePhoneNumberById,
@@ -51,6 +53,8 @@ import {
 import { finalizeVoiceCallOutcome } from '../_shared/voice-outcome-finalizer.ts';
 import { enqueueVoiceActionRunsForOutcome } from '../_shared/voice-action-repository.ts';
 import { runVoiceAction } from '../_shared/voice-action-runner.ts';
+import { buildLeadCreateInputFromVoiceCall } from '../_shared/voice-call-lead-recovery.ts';
+import { createLeadFromVoiceCall } from '../_shared/voice-lead-create.ts';
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -58,7 +62,6 @@ const ENABLE_NOISE_SUPPRESSION = parseBooleanEnv('TELNYX_ENABLE_NOISE_SUPPRESSIO
 const ENABLE_RECORDING = parseBooleanEnv('TELNYX_ENABLE_RECORDING', false);
 const RECORDING_CHANNELS = parseRecordingChannelsEnv('TELNYX_RECORDING_CHANNELS', 'dual');
 const E164_REGEX = /^\+[1-9][0-9]{1,14}$/;
-const ASSISTANT_START_DELAY_MS = resolveAssistantStartDelayMs();
 
 function ensureNonEmpty(value: string | null | undefined) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
@@ -108,15 +111,6 @@ function parseRecordingChannelsEnv(name: string, fallback: 'single' | 'dual') {
   return raw === 'single' || raw === 'dual' ? raw : fallback;
 }
 
-function resolveAssistantStartDelayMs() {
-  const fromNewVar = parseIntEnv('TELNYX_AI_START_DELAY_MS', -1);
-
-  if (fromNewVar >= 0) {
-    return fromNewVar;
-  }
-
-  return parseIntEnv('TELNYX_ASSISTANT_START_DELAY_MS', 0);
-}
 
 function resolveWebhookTraceId(request: Request) {
   return ensureNonEmpty(request.headers.get('x-request-id')) ??
@@ -194,6 +188,8 @@ function normalizeGatherLanguage(value: string | null | undefined) {
 
   return normalized;
 }
+
+
 
 function commandId(action: 'answer' | 'gather_start' | 'hangup', callControlId: string) {
   return `coreflow:voice:${action}:v1:${callControlId}`;
@@ -387,9 +383,7 @@ function isRetryableAssistantStartError(error: unknown) {
   return isRetryableInternalError(error);
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Math.trunc(ms))));
-}
+
 
 function isRetryableInternalError(error: unknown) {
   if (error instanceof TelnyxApiError) {
@@ -507,6 +501,68 @@ async function findExistingVoiceCallByControlIdGlobal(
     to_number_e164: string;
     lead_creation_status: string;
   } | null;
+}
+
+async function tryCreateLeadSync(
+  db: EdgeClient,
+  workspaceId: string,
+  voiceCall: VoiceCallRow,
+  logContext: any
+) {
+  if (voiceCall.lead_creation_status === 'created' || voiceCall.lead_creation_status === 'failed') {
+    return;
+  }
+
+  try {
+    const leadCreateInput = await buildLeadCreateInputFromVoiceCall({
+      db,
+      workspaceId,
+      call: voiceCall,
+    });
+
+    if (!leadCreateInput) {
+      console.log('[telnyx-voice-webhook] sync lead creation: mapping returned null', {
+        ...logContext,
+        voiceCallId: voiceCall.id
+      });
+      await applyLeadFailed(db, {
+        workspaceId,
+        voiceCallId: voiceCall.id,
+        errorMessage: 'Mapping failed - could not extract robust lead payload',
+        failedAt: new Date().toISOString()
+      });
+      return;
+    }
+
+    const { lead, isNewLead } = await createLeadFromVoiceCall(db, workspaceId, leadCreateInput);
+    
+    await applyLeadCreated(db, {
+      workspaceId,
+      voiceCallId: voiceCall.id,
+      leadId: lead.id,
+      createdOrMatchedLeadAt: new Date().toISOString() // Or pass exact time
+    });
+
+    console.log('[telnyx-voice-webhook] sync lead creation successful', {
+      ...logContext,
+      voiceCallId: voiceCall.id,
+      leadId: lead.id,
+      isNewLead
+    });
+  } catch (error) {
+    console.error('[telnyx-voice-webhook] sync lead creation failed', {
+      ...logContext,
+      voiceCallId: voiceCall.id,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    // Record failure in DB so finalization knows it happened
+    await applyLeadFailed(db, {
+      workspaceId,
+      voiceCallId: voiceCall.id,
+      errorMessage: error instanceof Error ? error.message : 'Unknown lead creation error',
+      failedAt: new Date().toISOString()
+    });
+  }
 }
 
 async function finalizeAndTriggerActions(params: {
@@ -1098,96 +1154,23 @@ Deno.serve(async (request) => {
         logContext: telnyxLogContext,
       });
 
-      if (!assistantId) {
-        console.warn('[telnyx-voice-webhook] assistant id missing/invalid, using gather fallback', {
-          ...telnyxLogContext,
-          workspaceId,
-          voiceCallId: call.id,
-          callControlId: call.provider_call_control_id,
-          runtimeVoiceAgentId: runtimeConfig?.agent.id ?? null,
-          configuredAssistantId: runtimeConfig?.agent.telnyx_assistant_id ?? null,
-          envAssistantId: ensureNonEmpty(Deno.env.get('TELNYX_ASSISTANT_ID')) ?? null,
-          fallbackTriggered: true,
-        });
+      console.log('[telnyx-voice-webhook] using gather fallback (gather_using_ai) instead of assistant per config', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        runtimeVoiceAgentId: runtimeConfig?.agent.id ?? null,
+        configuredAssistantId: runtimeConfig?.agent.telnyx_assistant_id ?? null,
+      });
 
-        await startGatherFallback({
-          workspaceId,
-          voiceCallId: call.id,
-          callControlId: call.provider_call_control_id,
-          runtimeConfig,
-          logContext: telnyxLogContext,
-          fallbackReason: 'missing_or_invalid_telnyx_assistant_id',
-        });
-
-        await applyCallGathering(db, {
-          workspaceId,
-          voiceCallId: call.id,
-        });
-
-        await markEventProcessed(db, { workspaceId, eventId });
-        return jsonResponse({
-          ok: true,
-          handled: normalizedEvent.eventType,
-          mode: 'gather_fallback',
-          reason: 'missing_or_invalid_telnyx_assistant_id',
-          fallbackTriggered: true,
-        }, 200);
-      }
-
-      if (ASSISTANT_START_DELAY_MS > 0) {
-        console.log('[telnyx-voice-webhook] delaying assistant start', {
-          ...telnyxLogContext,
-          assistantStartDelayMs: ASSISTANT_START_DELAY_MS,
-        });
-        await sleep(ASSISTANT_START_DELAY_MS);
-      }
-
-      try {
-        const assistantStart = await startMinimalAssistant({
-          callControlId: call.provider_call_control_id,
-          assistantId,
-          logContext: telnyxLogContext,
-        });
-        console.log('[telnyx-voice-webhook] assistant started', {
-          ...telnyxLogContext,
-          workspaceId,
-          voiceCallId: call.id,
-          callControlId: call.provider_call_control_id,
-          runtimeMode: 'assistant',
-          assistantId,
-          assistantIdSource: assistantResolution.source,
-          assistantStartDelayMs: ASSISTANT_START_DELAY_MS,
-          payload: sanitizeTelnyxPayload({ assistant_id: assistantId }),
-          commandId: assistantStart.commandId,
-          status: assistantStart.status,
-          fallbackTriggered: false,
-        });
-      } catch (assistantStartError) {
-        if (!isTelnyxInvalidRequestError(assistantStartError)) {
-          throw assistantStartError;
-        }
-
-        console.warn('[telnyx-voice-webhook] assistant start failed, switching to gather fallback', {
-          ...telnyxLogContext,
-          workspaceId,
-          voiceCallId: call.id,
-          callControlId: call.provider_call_control_id,
-          assistantId,
-          status: assistantStartError.status,
-          responseBody: assistantStartError.responseBody,
-          requestPayload: assistantStartError.requestBody,
-          fallbackTriggered: true,
-        });
-
-        await startGatherFallback({
-          workspaceId,
-          voiceCallId: call.id,
-          callControlId: call.provider_call_control_id,
-          runtimeConfig,
-          logContext: telnyxLogContext,
-          fallbackReason: 'assistant_start_failed_invalid_request',
-        });
-      }
+      await startGatherFallback({
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        runtimeConfig,
+        logContext: telnyxLogContext,
+        fallbackReason: 'assistant_disabled_by_user',
+      });
 
       await applyCallGathering(db, {
         workspaceId,
@@ -1198,9 +1181,12 @@ Deno.serve(async (request) => {
       return jsonResponse({ ok: true, handled: normalizedEvent.eventType }, 200);
     }
 
-    if (normalizedEvent.eventType === 'call.conversation.ended') {
+    if (
+      normalizedEvent.eventType === 'call.gather.ended' ||
+      normalizedEvent.eventType === 'call.conversation.ended'
+    ) {
       const messageSummary = summarizeMessageHistory(normalizedEvent.messageHistory);
-      console.log('[telnyx-voice-webhook] assistant conversation ended event received', {
+      console.log(`[telnyx-voice-webhook] ${normalizedEvent.eventType} event received`, {
         ...telnyxLogContext,
         workspaceId,
         eventType: normalizedEvent.eventType,
@@ -1217,12 +1203,26 @@ Deno.serve(async (request) => {
         gatherStatus: 'completed',
         gatherCompletedAt: occurredAt,
       });
+
+      const callForLeadCreation = await findVoiceCallById(db, workspaceId, call.id);
+
+      if (callForLeadCreation) {
+        await tryCreateLeadSync(
+          db,
+          workspaceId,
+          callForLeadCreation,
+          telnyxLogContext
+        );
+      }
+
+      const refreshedCall = await findVoiceCallById(db, workspaceId, call.id);
+
       await finalizeAndTriggerActions({
         db,
         workspaceId,
         voiceCallId: call.id,
-        outcomeStatus: gathered.record_id || gathered.lead_creation_status === 'created' ? 'lead_created' : 'review_needed',
-        outcomeReason: gathered.record_id || gathered.lead_creation_status === 'created'
+        outcomeStatus: refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created' ? 'lead_created' : 'review_needed',
+        outcomeReason: refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created'
           ? 'lead_created'
           : 'assistant_conversation_ended',
       });
@@ -1258,12 +1258,30 @@ Deno.serve(async (request) => {
       });
 
       if (!hungup.outcome_status) {
+        let outcomeStatus: 'lead_created' | 'ended_without_lead' = hungup.record_id ? 'lead_created' : 'ended_without_lead';
+
+        if (!hungup.record_id) {
+          const callForLeadCreation = await findVoiceCallById(db, workspaceId, call.id);
+          if (callForLeadCreation) {
+            await tryCreateLeadSync(
+              db,
+              workspaceId,
+              callForLeadCreation,
+              telnyxLogContext
+            );
+            const refreshedCall = await findVoiceCallById(db, workspaceId, call.id);
+            if (refreshedCall?.record_id || refreshedCall?.lead_creation_status === 'created') {
+              outcomeStatus = 'lead_created';
+            }
+          }
+        }
+
         await finalizeAndTriggerActions({
           db,
           workspaceId,
           voiceCallId: call.id,
-          outcomeStatus: hungup.record_id ? 'lead_created' : 'ended_without_lead',
-          outcomeReason: hungup.record_id ? 'lead_created' : 'call_hangup_without_lead',
+          outcomeStatus: outcomeStatus,
+          outcomeReason: outcomeStatus === 'lead_created' ? 'lead_created' : 'call_hangup_without_lead',
         });
       }
 
