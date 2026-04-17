@@ -4,6 +4,7 @@ export type TelnyxPhase1EventType =
   | 'call.ai_gather.ended'
   | 'call.gather.ended'
   | 'call.conversation.ended'
+  | 'call.analyzed'
   | 'call.hangup';
 
 export interface NormalizedTelnyxEvent {
@@ -183,6 +184,7 @@ export function isPhase1HandledEvent(eventType: string): eventType is TelnyxPhas
     eventType === 'call.ai_gather.ended' ||
     eventType === 'call.gather.ended' ||
     eventType === 'call.conversation.ended' ||
+    eventType === 'call.analyzed' ||
     eventType === 'call.hangup'
   );
 }
@@ -206,6 +208,7 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
     pickString(payload, ['occurred_at']) ||
     null;
   const callControlId = pickString(payload, ['call_control_id', 'callControlId']) || null;
+  const callSessionId = pickString(payload, ['call_session_id']) || null;
 
   if (isPhase1HandledEvent(eventType)) {
     if (!providerEventId) {
@@ -216,8 +219,10 @@ export function parseTelnyxWebhook(rawJson: unknown): NormalizedTelnyxEvent {
       throw new MalformedTelnyxWebhookError(`Missing occurred_at for handled event ${eventType}.`);
     }
 
-    if (!callControlId) {
-      throw new MalformedTelnyxWebhookError(`Missing call_control_id for handled event ${eventType}.`);
+    if (!callControlId && !callSessionId) {
+      throw new MalformedTelnyxWebhookError(
+        `Missing both call_control_id and call_session_id for handled event ${eventType}.`,
+      );
     }
   }
 
@@ -254,10 +259,11 @@ export function extractGatherResult(event: NormalizedTelnyxEvent): GatherExtract
   if (
     event.eventType !== 'call.ai_gather.ended' &&
     event.eventType !== 'call.gather.ended' &&
-    event.eventType !== 'call.conversation.ended'
+    event.eventType !== 'call.conversation.ended' &&
+    event.eventType !== 'call.analyzed'
   ) {
     throw new MissingGatherPayloadError(
-      'Gather extraction is only valid for call.ai_gather.ended, call.gather.ended, or call.conversation.ended.',
+      'Gather extraction is only valid for call.ai_gather.ended, call.gather.ended, call.conversation.ended, or call.analyzed.',
     );
   }
 

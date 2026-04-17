@@ -7,12 +7,14 @@ import type {
   VoiceAgentMappingRecord,
   VoiceAgentRecord,
   VoiceAgentSummary,
+  VoiceAgentTelnyxOptions,
   VoiceAgentUpdateInput,
 } from '../../lib/voice-agent-service';
 import {
   bindVoiceAgentNumber,
   deleteVoiceAgent,
   getVoiceAgent,
+  listVoiceAgentTelnyxOptions,
   listVoiceAgents,
   setVoiceAgentMappings,
   VoiceAgentServiceError,
@@ -60,6 +62,9 @@ export function VoiceAgentsPanel({
   const [deletingAgent, setDeletingAgent] = useState(false);
   const [agentErrorMessage, setAgentErrorMessage] = useState('');
   const [agentActivationIssues, setAgentActivationIssues] = useState<string[]>([]);
+  const [telnyxOptions, setTelnyxOptions] = useState<VoiceAgentTelnyxOptions | null>(null);
+  const [telnyxOptionsLoading, setTelnyxOptionsLoading] = useState(false);
+  const [telnyxOptionsError, setTelnyxOptionsError] = useState('');
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [editDraftValues, setEditDraftValues] = useState<VoiceAgentFormValues>(createEmptyVoiceAgentFormValues);
 
@@ -115,6 +120,43 @@ export function VoiceAgentsPanel({
 
   useEffect(() => {
     void loadAgents();
+  }, [session, workspaceId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTelnyxOptions() {
+      setTelnyxOptionsLoading(true);
+      setTelnyxOptionsError('');
+
+      try {
+        const response = await listVoiceAgentTelnyxOptions(session, workspaceId);
+
+        if (cancelled) {
+          return;
+        }
+
+        setTelnyxOptions(response.options);
+        setTelnyxOptionsError(response.warnings?.join(' ') ?? '');
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : 'Unable to load Telnyx options.';
+        setTelnyxOptionsError(message);
+      } finally {
+        if (!cancelled) {
+          setTelnyxOptionsLoading(false);
+        }
+      }
+    }
+
+    void loadTelnyxOptions();
+
+    return () => {
+      cancelled = true;
+    };
   }, [session, workspaceId]);
 
   useEffect(() => {
@@ -465,6 +507,9 @@ export function VoiceAgentsPanel({
         submitting={submittingAgent}
         errorMessage={agentErrorMessage}
         activationIssues={agentActivationIssues}
+        telnyxOptions={telnyxOptions}
+        telnyxOptionsLoading={telnyxOptionsLoading}
+        telnyxOptionsError={telnyxOptionsError}
         values={editDraftValues}
         onValuesChange={setEditDraftValues}
         onClose={handleCloseEditDrawer}

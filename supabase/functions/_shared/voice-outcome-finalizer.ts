@@ -1,6 +1,8 @@
 import type { EdgeClient } from './server.ts';
+import { generateVoiceCallSummaryArtifacts } from './voice-call-summary.ts';
 import {
   findVoiceCallById,
+  listVoiceCallArtifactsByVoiceCallId,
   saveVoiceCallArtifact,
   updateVoiceCallOutcome,
   type VoiceCallRow,
@@ -60,7 +62,14 @@ function deriveReviewStatus(outcomeStatus: VoiceOutcomeStatus): VoiceReviewStatu
 }
 
 async function ensureArtifactPlaceholders(db: EdgeClient, workspaceId: string, voiceCallId: string) {
+  const existing = await listVoiceCallArtifactsByVoiceCallId(db, workspaceId, voiceCallId);
+  const existingTypes = new Set(existing.map((artifact) => artifact.artifact_type));
+
   for (const artifactType of ['summary', 'disposition', 'follow_up_recommendation'] as const) {
+    if (existingTypes.has(artifactType)) {
+      continue;
+    }
+
     await saveVoiceCallArtifact(db, {
       workspaceId,
       voiceCallId,
@@ -107,6 +116,20 @@ export async function finalizeVoiceCallOutcome(params: {
   });
 
   await ensureArtifactPlaceholders(params.db, workspaceId, voiceCallId);
+
+  try {
+    await generateVoiceCallSummaryArtifacts({
+      db: params.db,
+      workspaceId,
+      call: updated,
+    });
+  } catch (error) {
+    console.warn('[voice-outcome-finalizer] summary generation skipped after failure', {
+      workspaceId,
+      voiceCallId,
+      message: error instanceof Error ? error.message : 'Unknown error.',
+    });
+  }
 
   return updated;
 }

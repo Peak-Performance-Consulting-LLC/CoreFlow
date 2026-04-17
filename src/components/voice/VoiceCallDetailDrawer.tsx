@@ -25,10 +25,12 @@ interface VoiceCallDetailDrawerProps {
   retryingLead: boolean;
   retryingActionId: string | null;
   resolvingReview: boolean;
+  creatingTaskArtifactId: string | null;
   onClose: () => void;
   onRetryLeadCreate: () => Promise<void> | void;
   onRetryAction: (actionRunId: string) => Promise<void> | void;
   onResolveReview: (reviewStatus: 'open' | 'resolved' | 'dismissed') => Promise<void> | void;
+  onCreateTaskFromRecommendation: (artifactId: string) => Promise<void> | void;
 }
 
 export function VoiceCallDetailDrawer({
@@ -38,10 +40,12 @@ export function VoiceCallDetailDrawer({
   retryingLead,
   retryingActionId,
   resolvingReview,
+  creatingTaskArtifactId,
   onClose,
   onRetryLeadCreate,
   onRetryAction,
   onResolveReview,
+  onCreateTaskFromRecommendation,
 }: VoiceCallDetailDrawerProps) {
   useEffect(() => {
     if (!isOpen) {
@@ -157,7 +161,12 @@ export function VoiceCallDetailDrawer({
                 onResolveReview={onResolveReview}
               />
 
-              <VoiceCallArtifactsPanel call={detail.call} artifacts={detail.artifacts} />
+              <VoiceCallArtifactsPanel
+                call={detail.call}
+                artifacts={detail.artifacts}
+                creatingTaskArtifactId={creatingTaskArtifactId}
+                onCreateTaskFromRecommendation={onCreateTaskFromRecommendation}
+              />
               <VoiceCallEventTimeline events={detail.events} />
             </div>
           )}

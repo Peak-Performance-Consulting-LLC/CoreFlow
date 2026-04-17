@@ -1,5 +1,11 @@
 import { TelnyxApiError } from './telnyx-client.ts';
 import {
+  normalizeVoiceAgentLanguage,
+  normalizeVoiceAgentTranscriptionModel,
+  resolveDefaultVoiceAgentLanguage,
+  resolveDefaultVoiceAgentTranscriptionModel,
+} from './voice-agent-transcription.ts';
+import {
   createTelnyxAssistant,
   updateTelnyxAssistant,
   type TelnyxAssistantPayload,
@@ -17,10 +23,10 @@ export interface VoiceAgentTelnyxSyncInput {
   telnyxLanguage: string;
 }
 
-const DEFAULT_ASSISTANT_MODEL = 'Qwen/Qwen3-235B-A22B';
+const DEFAULT_ASSISTANT_MODEL = 'gpt-4o-mini';
 const DEFAULT_ASSISTANT_VOICE = 'af';
-const DEFAULT_TRANSCRIPTION_MODEL = 'deepgram/nova-3';
-const DEFAULT_TRANSCRIPTION_LANGUAGE = 'en';
+const DEFAULT_TRANSCRIPTION_MODEL = resolveDefaultVoiceAgentTranscriptionModel();
+const DEFAULT_TRANSCRIPTION_LANGUAGE = resolveDefaultVoiceAgentLanguage();
 
 function getString(value: unknown) {
   return typeof value === 'string' ? value.trim() : '';
@@ -44,11 +50,12 @@ function getTelnyxAssistantVoice() {
 }
 
 function getTelnyxAssistantTranscriptionModel() {
-  return getString(Deno.env.get('TELNYX_ASSISTANT_TRANSCRIPTION_MODEL')) || DEFAULT_TRANSCRIPTION_MODEL;
+  return normalizeVoiceAgentTranscriptionModel(Deno.env.get('TELNYX_ASSISTANT_TRANSCRIPTION_MODEL')) ??
+    DEFAULT_TRANSCRIPTION_MODEL;
 }
 
 function getTelnyxAssistantLanguage() {
-  return getString(Deno.env.get('TELNYX_ASSISTANT_LANGUAGE')) || DEFAULT_TRANSCRIPTION_LANGUAGE;
+  return normalizeVoiceAgentLanguage(Deno.env.get('TELNYX_ASSISTANT_LANGUAGE')) ?? DEFAULT_TRANSCRIPTION_LANGUAGE;
 }
 
 function normalizeTelnyxVoiceId(value: string) {
@@ -77,19 +84,7 @@ function normalizeTelnyxVoiceId(value: string) {
 }
 
 function normalizeTelnyxLanguageId(value: unknown) {
-  const normalized = getString(value).toLowerCase().replace('_', '-');
-
-  if (!normalized) {
-    return '';
-  }
-
-  const [base] = normalized.split('-');
-
-  if (base && /^[a-z]{2,3}$/.test(base)) {
-    return base;
-  }
-
-  return normalized;
+  return normalizeVoiceAgentLanguage(value) ?? '';
 }
 
 function isRetriableAssistantPayloadError(error: unknown) {
@@ -167,6 +162,7 @@ function buildVoiceFallbackCandidate(voice: string) {
 export function buildTelnyxAssistantPayload(input: VoiceAgentTelnyxSyncInput): TelnyxAssistantPayload {
   const description = normalizeNullableString(input.description);
   const normalizedVoice = normalizeTelnyxVoiceId(input.telnyxVoice);
+  const normalizedTranscriptionModel = normalizeVoiceAgentTranscriptionModel(input.telnyxTranscriptionModel);
   const normalizedLanguage = normalizeTelnyxLanguageId(input.telnyxLanguage) ||
     normalizeTelnyxLanguageId(getTelnyxAssistantLanguage()) ||
     DEFAULT_TRANSCRIPTION_LANGUAGE;
@@ -182,7 +178,7 @@ export function buildTelnyxAssistantPayload(input: VoiceAgentTelnyxSyncInput): T
       voice: normalizedVoice || normalizeTelnyxVoiceId(getTelnyxAssistantVoice()) || DEFAULT_ASSISTANT_VOICE,
     },
     transcription: {
-      model: getString(input.telnyxTranscriptionModel) || getTelnyxAssistantTranscriptionModel(),
+      model: normalizedTranscriptionModel || getTelnyxAssistantTranscriptionModel(),
       language: normalizedLanguage,
     },
   };

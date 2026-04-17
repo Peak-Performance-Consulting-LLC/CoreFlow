@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PageHeader } from '../components/dashboard/PageHeader';
@@ -9,7 +9,13 @@ import { FullPageLoader } from '../components/ui/FullPageLoader';
 import { SectionSkeleton } from '../components/ui/SectionSkeleton';
 import { useAuth } from '../hooks/useAuth';
 import { useCrmWorkspace } from '../hooks/useCrmWorkspace';
-import { createVoiceAgent, type VoiceAgentCreateInput, VoiceAgentServiceError } from '../lib/voice-agent-service';
+import {
+  createVoiceAgent,
+  listVoiceAgentTelnyxOptions,
+  type VoiceAgentCreateInput,
+  type VoiceAgentTelnyxOptions,
+  VoiceAgentServiceError,
+} from '../lib/voice-agent-service';
 
 export function VoiceNewAssistantPage() {
   const navigate = useNavigate();
@@ -19,6 +25,9 @@ export function VoiceNewAssistantPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activationIssues, setActivationIssues] = useState<string[]>([]);
+  const [telnyxOptions, setTelnyxOptions] = useState<VoiceAgentTelnyxOptions | null>(null);
+  const [telnyxOptionsLoading, setTelnyxOptionsLoading] = useState(false);
+  const [telnyxOptionsError, setTelnyxOptionsError] = useState('');
 
   const isOwner = Boolean(workspace && user && workspace.ownerId === user.id);
 
@@ -63,6 +72,49 @@ export function VoiceNewAssistantPage() {
       setSubmitting(false);
     }
   }
+
+  useEffect(() => {
+    if (!session || !workspace) {
+      return;
+    }
+
+    const currentSession = session;
+    const currentWorkspaceId = workspace.id;
+    let cancelled = false;
+
+    async function loadTelnyxOptions() {
+      setTelnyxOptionsLoading(true);
+      setTelnyxOptionsError('');
+
+      try {
+        const response = await listVoiceAgentTelnyxOptions(currentSession, currentWorkspaceId);
+
+        if (cancelled) {
+          return;
+        }
+
+        setTelnyxOptions(response.options);
+        setTelnyxOptionsError(response.warnings?.join(' ') ?? '');
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : 'Unable to load Telnyx options.';
+        setTelnyxOptionsError(message);
+      } finally {
+        if (!cancelled) {
+          setTelnyxOptionsLoading(false);
+        }
+      }
+    }
+
+    void loadTelnyxOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session, workspace]);
 
   if (!session || !workspace) {
     return <FullPageLoader label="Loading assistant setup..." />;
@@ -113,6 +165,9 @@ export function VoiceNewAssistantPage() {
             submitting={submitting}
             errorMessage={errorMessage}
             activationIssues={activationIssues}
+            telnyxOptions={telnyxOptions}
+            telnyxOptionsLoading={telnyxOptionsLoading}
+            telnyxOptionsError={telnyxOptionsError}
             values={values}
             onValuesChange={setValues}
             onSubmit={handleCreateAssistant}

@@ -91,3 +91,6 @@ verify_jwt = false
 
 [functions.voice-agent-delete]
 verify_jwt = false
+
+[functions.voice-agent-options]
+verify_jwt = false

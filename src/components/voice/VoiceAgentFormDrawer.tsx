@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 import type { RecordSource } from '../../lib/crm-types';
-import type { VoiceAgentRecord } from '../../lib/voice-agent-service';
+import type { VoiceAgentRecord, VoiceAgentTelnyxOptions } from '../../lib/voice-agent-service';
 import { Button } from '../ui/Button';
 import {
   VoiceAgentForm,
@@ -16,6 +16,9 @@ interface VoiceAgentFormDrawerProps {
   submitting: boolean;
   errorMessage?: string;
   activationIssues?: string[];
+  telnyxOptions?: VoiceAgentTelnyxOptions | null;
+  telnyxOptionsLoading?: boolean;
+  telnyxOptionsError?: string;
   values: VoiceAgentFormValues;
   onValuesChange: (values: VoiceAgentFormValues) => void;
   onClose: () => void;
@@ -30,6 +33,9 @@ export function VoiceAgentFormDrawer({
   submitting,
   errorMessage,
   activationIssues,
+  telnyxOptions,
+  telnyxOptionsLoading,
+  telnyxOptionsError,
   values,
   onValuesChange,
   onClose,
@@ -110,6 +116,9 @@ export function VoiceAgentFormDrawer({
             submitting={submitting}
             errorMessage={errorMessage}
             activationIssues={activationIssues}
+            telnyxOptions={telnyxOptions}
+            telnyxOptionsLoading={telnyxOptionsLoading}
+            telnyxOptionsError={telnyxOptionsError}
             values={values}
             onValuesChange={onValuesChange}
             onSubmit={onSubmit}

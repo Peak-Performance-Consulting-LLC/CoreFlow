@@ -1,5 +1,4 @@
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import type { VoiceAgentBindingRecord, VoiceAgentSummary } from '../../lib/voice-agent-service';
 import type { VoiceNumberRecord } from '../../lib/voice-service';
 

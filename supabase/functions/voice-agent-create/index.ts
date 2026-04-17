@@ -6,12 +6,16 @@ import {
   createTelnyxAssistantForVoiceAgent,
   formatTelnyxAssistantSyncError,
 } from '../_shared/voice-agent-telnyx-sync.ts';
+import {
+  resolveDefaultVoiceAgentLanguage,
+  resolveDefaultVoiceAgentTranscriptionModel,
+} from '../_shared/voice-agent-transcription.ts';
 import { validateVoiceAgentPayload } from '../_shared/voice-agent-validator.ts';
 
-const DEFAULT_TELNYX_MODEL = 'Qwen/Qwen3-235B-A22B';
+const DEFAULT_TELNYX_MODEL = 'gpt-4o-mini';
 const DEFAULT_TELNYX_VOICE = 'af';
-const DEFAULT_TELNYX_TRANSCRIPTION_MODEL = 'deepgram/nova-3';
-const DEFAULT_TELNYX_LANGUAGE = 'en';
+const DEFAULT_TELNYX_TRANSCRIPTION_MODEL = resolveDefaultVoiceAgentTranscriptionModel();
+const DEFAULT_TELNYX_LANGUAGE = resolveDefaultVoiceAgentLanguage();
 
 function normalizeTelnyxVoice(value: string | null | undefined) {
   const normalized = typeof value === 'string' ? value.trim() : '';

@@ -1,4 +1,5 @@
 import type { EdgeClient } from './server.ts';
+import { validateVoiceSystemPrompt } from './voice-agent-prompt.ts';
 import {
   findActiveVoiceAgentBindingForNumber,
   findVoiceAgentById,
@@ -11,6 +12,10 @@ import {
   findWorkspacePhoneNumberById,
   isWorkspacePhoneNumberRoutable,
 } from './voice-repository.ts';
+import {
+  normalizeVoiceAgentLanguage,
+  normalizeVoiceAgentTranscriptionModel,
+} from './voice-agent-transcription.ts';
 
 export const ALLOWED_VOICE_AGENT_CORE_TARGETS = new Set(['title', 'full_name', 'company_name', 'email']);
 export const ALLOWED_VOICE_AGENT_SOURCE_VALUE_TYPES = new Set(['string', 'number', 'boolean', 'array']);
@@ -95,16 +100,34 @@ function ensureNonEmpty(value: unknown, field: string) {
 }
 
 function normalizeTelnyxLanguage(value: string) {
-  const normalized = normalizeString(value).toLowerCase().replace('_', '-');
+  const normalized = normalizeVoiceAgentLanguage(value);
 
   if (!normalized) {
-    return normalized;
+    throw new VoiceAgentValidationError(
+      'telnyx_language must be a valid language tag like "en" or "en-US".',
+    );
   }
 
-  const [base] = normalized.split('-');
+  return normalized;
+}
 
-  if (base && /^[a-z]{2,3}$/.test(base)) {
-    return base;
+function normalizeTranscriptionModel(value: string) {
+  const rawValue = normalizeString(value);
+
+  if (!rawValue) {
+    throw new VoiceAgentValidationError('telnyx_transcription_model is required.');
+  }
+
+  if (rawValue.length > 128) {
+    throw new VoiceAgentValidationError('telnyx_transcription_model must be 128 characters or fewer.');
+  }
+
+  const normalized = normalizeVoiceAgentTranscriptionModel(rawValue);
+
+  if (!normalized) {
+    throw new VoiceAgentValidationError(
+      'telnyx_transcription_model contains invalid characters.',
+    );
   }
 
   return normalized;
@@ -193,15 +216,25 @@ export async function validateVoiceAgentPayload(
 
   const name = payload.name !== undefined ? ensureNonEmpty(payload.name, 'name') : undefined;
   const greeting = payload.greeting !== undefined ? ensureNonEmpty(payload.greeting, 'greeting') : undefined;
-  const systemPrompt =
-    payload.system_prompt !== undefined ? ensureNonEmpty(payload.system_prompt, 'system_prompt') : undefined;
+  let systemPrompt: string | undefined;
+
+  if (payload.system_prompt !== undefined) {
+    const promptValidation = validateVoiceSystemPrompt(payload.system_prompt);
+
+    if (promptValidation.issue) {
+      throw new VoiceAgentValidationError(promptValidation.issue);
+    }
+
+    systemPrompt = promptValidation.normalized;
+  }
+
   const telnyxModel =
     payload.telnyx_model !== undefined ? ensureNonEmpty(payload.telnyx_model, 'telnyx_model') : undefined;
   const telnyxVoice =
     payload.telnyx_voice !== undefined ? ensureNonEmpty(payload.telnyx_voice, 'telnyx_voice') : undefined;
   const telnyxTranscriptionModel =
     payload.telnyx_transcription_model !== undefined
-      ? ensureNonEmpty(payload.telnyx_transcription_model, 'telnyx_transcription_model')
+      ? normalizeTranscriptionModel(payload.telnyx_transcription_model)
       : undefined;
   const telnyxLanguage =
     payload.telnyx_language !== undefined ? ensureNonEmpty(payload.telnyx_language, 'telnyx_language') : undefined;

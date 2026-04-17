@@ -45,6 +45,13 @@ import {
 import {
   buildVoiceAgentCallSnapshot,
 } from '../_shared/voice-agent-mapper.ts';
+import { buildVoiceProviderInstructions } from '../_shared/voice-agent-prompt.ts';
+import {
+  normalizeVoiceAgentLanguage,
+  normalizeVoiceAgentTranscriptionModel,
+  resolveDefaultVoiceAgentLanguage,
+  resolveDefaultVoiceAgentTranscriptionModel,
+} from '../_shared/voice-agent-transcription.ts';
 import {
   getVoiceAgentRuntimeByPhoneNumberId,
   type VoiceAgentRuntimeConfig,
@@ -58,9 +65,16 @@ import { createLeadFromVoiceCall } from '../_shared/voice-lead-create.ts';
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-const ENABLE_NOISE_SUPPRESSION = parseBooleanEnv('TELNYX_ENABLE_NOISE_SUPPRESSION', false);
+const DEFAULT_ENABLE_NOISE_SUPPRESSION = parseBooleanEnv('TELNYX_DEFAULT_ENABLE_NOISE_SUPPRESSION', false);
+const ENABLE_NOISE_SUPPRESSION = parseBooleanEnv('TELNYX_ENABLE_NOISE_SUPPRESSION', DEFAULT_ENABLE_NOISE_SUPPRESSION);
 const ENABLE_RECORDING = parseBooleanEnv('TELNYX_ENABLE_RECORDING', false);
 const RECORDING_CHANNELS = parseRecordingChannelsEnv('TELNYX_RECORDING_CHANNELS', 'dual');
+const NOISE_SUPPRESSION_ENGINE = parseNoiseSuppressionEngineEnv('TELNYX_NOISE_SUPPRESSION_ENGINE', 'Denoiser');
+const AI_USER_RESPONSE_TIMEOUT_MS = parseIntEnv('TELNYX_AI_USER_RESPONSE_TIMEOUT_MS', 1200);
+const AI_SEND_PARTIAL_RESULTS = parseBooleanEnv('TELNYX_AI_SEND_PARTIAL_RESULTS', true);
+const AI_ENABLE_BARGE_IN = parseBooleanEnv('TELNYX_AI_ENABLE_BARGE_IN', true);
+const DEFAULT_GATHER_TRANSCRIPTION_MODEL = resolveDefaultVoiceAgentTranscriptionModel();
+const DEFAULT_GATHER_LANGUAGE = resolveDefaultVoiceAgentLanguage();
 const E164_REGEX = /^\+[1-9][0-9]{1,14}$/;
 
 function ensureNonEmpty(value: string | null | undefined) {
@@ -109,6 +123,19 @@ function parseIntEnv(name: string, fallback: number) {
 function parseRecordingChannelsEnv(name: string, fallback: 'single' | 'dual') {
   const raw = Deno.env.get(name)?.trim().toLowerCase();
   return raw === 'single' || raw === 'dual' ? raw : fallback;
+}
+
+function parseNoiseSuppressionEngineEnv(
+  name: string,
+  fallback: 'Denoiser' | 'DeepFilterNet' | 'Krisp',
+) {
+  const raw = Deno.env.get(name)?.trim();
+
+  if (raw === 'Denoiser' || raw === 'DeepFilterNet' || raw === 'Krisp') {
+    return raw;
+  }
+
+  return fallback;
 }
 
 
@@ -174,19 +201,24 @@ function normalizeGatherVoice(value: string | null | undefined) {
 }
 
 function normalizeGatherLanguage(value: string | null | undefined) {
-  const normalized = ensureNonEmpty(value)?.toLowerCase().replace('_', '-');
+  return normalizeVoiceAgentLanguage(value);
+}
 
-  if (!normalized) {
+function normalizeGatherTranscriptionModel(value: string | null | undefined) {
+  return normalizeVoiceAgentTranscriptionModel(value);
+}
+
+function buildGatherInterruptionSettings() {
+  if (!AI_ENABLE_BARGE_IN) {
     return null;
   }
 
-  const [base] = normalized.split('-');
-
-  if (base && /^[a-z]{2,3}$/.test(base)) {
-    return base;
-  }
-
-  return normalized;
+  // Telnyx supports interruption_settings on gather_using_ai, but schema keys
+  // are provider-defined and may evolve. Keep this minimal and centralized so
+  // it can be tuned safely without touching call orchestration flow.
+  return {
+    enabled: true,
+  } as Record<string, unknown>;
 }
 
 
@@ -300,6 +332,11 @@ function safeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Unexpected error.';
 }
 
+function isMissingRequiredCrmFieldsError(error: unknown) {
+  const message = safeErrorMessage(error);
+  return message.startsWith('Missing required CRM fields for lead creation:');
+}
+
 function isTelnyxInvalidRequestError(error: unknown): error is TelnyxApiError {
   if (!(error instanceof TelnyxApiError)) {
     return false;
@@ -339,6 +376,142 @@ function buildGatherSchemaFromMappings(mappings: VoiceAgentRuntimeConfig['mappin
     required,
     additionalProperties: false,
   } as Record<string, unknown>;
+}
+
+function normalizeRequiredFieldToken(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+}
+
+function extractRequiredFieldHints(parametersSchema: Record<string, unknown>) {
+  const requiredRaw = Array.isArray(parametersSchema.required) ? parametersSchema.required : [];
+  const properties = typeof parametersSchema.properties === 'object' && parametersSchema.properties !== null
+    ? parametersSchema.properties as Record<string, unknown>
+    : {};
+  const requiredKeys = requiredRaw
+    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+    .filter(Boolean);
+
+  const requiredFields = requiredKeys.map((key) => {
+    const property = properties[key];
+    const description = typeof property === 'object' && property !== null && typeof (property as Record<string, unknown>).description === 'string'
+      ? ((property as Record<string, unknown>).description as string).trim()
+      : '';
+
+    return {
+      key,
+      normalized: normalizeRequiredFieldToken(key),
+      description,
+    };
+  });
+
+  return {
+    requiredFields,
+    hasName: requiredFields.some((field) => /name/.test(field.normalized)),
+    hasEmail: requiredFields.some((field) => /email/.test(field.normalized)),
+    hasPreferredLocation: requiredFields.some((field) => /location|area|city|region/.test(field.normalized)),
+    hasPropertyType: requiredFields.some((field) => /property.*type|property_type|home_type|house_type|requirement_type/.test(field.normalized)),
+  };
+}
+
+function buildRequiredFieldCollectionInstructions(parametersSchema: Record<string, unknown>) {
+  const hints = extractRequiredFieldHints(parametersSchema);
+
+  if (hints.requiredFields.length === 0) {
+    return null;
+  }
+
+  const requiredChecklist = hints.requiredFields
+    .map((field) => `- ${field.key}${field.description ? `: ${field.description}` : ''}`)
+    .join('\n');
+
+  const criticalFields = [
+    hints.hasName ? 'full name' : null,
+    hints.hasEmail ? 'email' : null,
+    hints.hasPreferredLocation ? 'preferred location' : null,
+    hints.hasPropertyType ? 'property type' : null,
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const criticalLine = criticalFields.length > 0
+    ? `Critical fields to complete before ending: ${criticalFields.join(', ')}.`
+    : null;
+
+  const emailLine = hints.hasEmail
+    ? 'For email, ask the caller to spell it once and read it back once for confirmation.'
+    : null;
+
+  return [
+    'Field completion rules:',
+    '- Collect every required field in the schema.',
+    '- Ask one missing field at a time and wait for a clear answer.',
+    '- If a value is unclear, ask one short clarification question.',
+    '- Do not end the conversation until all required fields are captured.',
+    ...(criticalLine ? [criticalLine] : []),
+    ...(emailLine ? [emailLine] : []),
+    'Required fields:',
+    requiredChecklist,
+  ].join('\n');
+}
+
+interface RequiredCrmFieldHint {
+  field_key: string;
+  label: string;
+}
+
+async function listActiveRequiredRecordFields(
+  db: EdgeClient,
+  workspaceId: string,
+): Promise<RequiredCrmFieldHint[]> {
+  const { data, error } = await db
+    .from('custom_field_definitions')
+    .select('field_key, label, is_required')
+    .eq('workspace_id', workspaceId)
+    .eq('entity_type', 'record')
+    .eq('is_active', true)
+    .eq('is_required', true);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (Array.isArray(data) ? data : [])
+    .map((entry) => ({
+      field_key: ensureNonEmpty(entry?.field_key),
+      label: ensureNonEmpty(entry?.label) ?? ensureNonEmpty(entry?.field_key) ?? 'Required field',
+    }))
+    .filter((entry) => Boolean(entry.field_key));
+}
+
+function buildCrmRequiredFieldInstructions(requiredFields: RequiredCrmFieldHint[]) {
+  if (!Array.isArray(requiredFields) || requiredFields.length === 0) {
+    return null;
+  }
+
+  const normalized = requiredFields.map((field) => ({
+    fieldKey: normalizeRequiredFieldToken(field.field_key),
+    label: field.label,
+  }));
+  const hasName = normalized.some((field) => /name/.test(field.fieldKey));
+  const hasEmail = normalized.some((field) => /email/.test(field.fieldKey));
+  const hasPreferredLocation = normalized.some((field) => /location|area|city|region/.test(field.fieldKey));
+  const hasPropertyType = normalized.some((field) => /property.*type|property_type|home_type|house_type|requirement_type/.test(field.fieldKey));
+  const requiredChecklist = requiredFields.map((field) => `- ${field.label}`).join('\n');
+  const criticalFields = [
+    hasName ? 'full name' : null,
+    hasEmail ? 'email' : null,
+    hasPreferredLocation ? 'preferred location' : null,
+    hasPropertyType ? 'property type' : null,
+  ].filter((entry): entry is string => Boolean(entry));
+
+  return [
+    'CRM-required field rules:',
+    '- These fields are required by CRM and must be collected before ending.',
+    '- Ask for any missing required field one-by-one.',
+    ...(criticalFields.length > 0
+      ? [`Critical CRM fields to confirm: ${criticalFields.join(', ')}.`]
+      : []),
+    'CRM required fields:',
+    requiredChecklist,
+  ].join('\n');
 }
 
 function isTelnyxCallAlreadyEndedError(error: unknown) {
@@ -497,6 +670,35 @@ async function findExistingVoiceCallByControlIdGlobal(
     id: string;
     workspace_id: string;
     workspace_phone_number_id: string;
+    provider_call_control_id: string;
+    from_number_e164: string;
+    to_number_e164: string;
+    lead_creation_status: string;
+  } | null;
+}
+
+async function findExistingVoiceCallBySessionIdGlobal(
+  db: EdgeClient,
+  callSessionId: string,
+) {
+  const { data, error } = await db
+    .from('voice_calls')
+    .select('id, workspace_id, workspace_phone_number_id, provider_call_control_id, from_number_e164, to_number_e164, lead_creation_status')
+    .eq('provider', 'telnyx')
+    .eq('provider_call_session_id', callSessionId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as {
+    id: string;
+    workspace_id: string;
+    workspace_phone_number_id: string;
+    provider_call_control_id: string;
     from_number_e164: string;
     to_number_e164: string;
     lead_creation_status: string;
@@ -549,22 +751,42 @@ async function tryCreateLeadSync(
 
     return findVoiceCallById(db, workspaceId, currentCall.id);
   } catch (error) {
+    const errorMessage = safeErrorMessage(error);
     console.error('[telnyx-voice-webhook] sync lead creation failed', {
       ...logContext,
       voiceCallId: currentCall.id,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
     });
-    await applyLeadFailed(db, {
-      workspaceId,
-      voiceCallId: currentCall.id,
-      errorMessage: error instanceof Error ? error.message : 'Unknown lead creation error',
-    });
+
+    if (isMissingRequiredCrmFieldsError(error)) {
+      await db
+        .from('voice_calls')
+        .update({
+          outcome_status: 'mapping_failed',
+          outcome_reason: 'missing_required_crm_fields',
+          outcome_error: errorMessage,
+          review_status: 'open',
+          review_reason: 'missing_required_crm_fields',
+        })
+        .eq('workspace_id', workspaceId)
+        .eq('id', currentCall.id);
+    } else {
+      await applyLeadFailed(db, {
+        workspaceId,
+        voiceCallId: currentCall.id,
+        errorMessage,
+      });
+    }
 
     return findVoiceCallById(db, workspaceId, currentCall.id);
   }
 }
 
 function deriveSyncOutcomeStatus(call: VoiceCallRow | null | undefined) {
+  if (call?.outcome_status === 'mapping_failed') {
+    return 'mapping_failed' as const;
+  }
+
   if (call?.record_id || call?.lead_creation_status === 'created') {
     return 'lead_created' as const;
   }
@@ -581,6 +803,10 @@ function deriveSyncOutcomeReason(call: VoiceCallRow | null | undefined, pendingR
 
   if (outcomeStatus === 'lead_created') {
     return 'lead_created';
+  }
+
+  if (outcomeStatus === 'mapping_failed') {
+    return 'missing_required_crm_fields';
   }
 
   if (outcomeStatus === 'crm_failed') {
@@ -642,6 +868,9 @@ async function startInboundNoiseSuppressionForCall(params: {
       workspaceId: params.workspaceId,
       voiceCallId: params.voiceCallId,
       callControlId: params.callControlId,
+      enableNoiseSuppression: ENABLE_NOISE_SUPPRESSION,
+      defaultEnableNoiseSuppression: DEFAULT_ENABLE_NOISE_SUPPRESSION,
+      noiseSuppressionEngine: NOISE_SUPPRESSION_ENGINE,
     });
     return;
   }
@@ -652,6 +881,7 @@ async function startInboundNoiseSuppressionForCall(params: {
       commandId: suppressionCommandId(params.callControlId),
       clientState: buildClientState(params.workspaceId, params.voiceCallId),
       direction: 'inbound',
+      noiseSuppressionEngine: NOISE_SUPPRESSION_ENGINE,
       logContext: params.logContext,
     });
     console.log('[telnyx-voice-webhook] noise suppression started', {
@@ -661,6 +891,8 @@ async function startInboundNoiseSuppressionForCall(params: {
       callControlId: params.callControlId,
       commandId: suppressionResult.commandId,
       status: suppressionResult.status,
+      enableNoiseSuppression: ENABLE_NOISE_SUPPRESSION,
+      noiseSuppressionEngine: NOISE_SUPPRESSION_ENGINE,
     });
   } catch (error) {
     console.warn('[telnyx-voice-webhook] noise suppression start failed', {
@@ -669,6 +901,8 @@ async function startInboundNoiseSuppressionForCall(params: {
       voiceCallId: params.voiceCallId,
       callControlId: params.callControlId,
       message: safeErrorMessage(error),
+      enableNoiseSuppression: ENABLE_NOISE_SUPPRESSION,
+      noiseSuppressionEngine: NOISE_SUPPRESSION_ENGINE,
       telnyxStatus: error instanceof TelnyxApiError ? error.status : null,
       telnyxResponseBody: error instanceof TelnyxApiError ? error.responseBody : null,
       telnyxRequestPayload: error instanceof TelnyxApiError ? error.requestBody : null,
@@ -707,47 +941,57 @@ async function startGatherFallback(params: {
   voiceCallId: string;
   callControlId: string;
   runtimeConfig: VoiceAgentRuntimeConfig | null;
+  crmRequiredFieldInstructions?: string | null;
   logContext: Record<string, unknown>;
   fallbackReason: string;
 }) {
   const greeting = ensureNonEmpty(params.runtimeConfig?.agent?.greeting);
   const model = ensureNonEmpty(params.runtimeConfig?.agent?.telnyx_model);
-  const instructions = ensureNonEmpty(params.runtimeConfig?.agent?.system_prompt);
-  const voice = normalizeGatherVoice(params.runtimeConfig?.agent?.telnyx_voice);
-  const language = normalizeGatherLanguage(params.runtimeConfig?.agent?.telnyx_language);
-  const transcriptionModel = ensureNonEmpty(params.runtimeConfig?.agent?.telnyx_transcription_model);
+  const normalizedSystemPrompt = ensureNonEmpty(params.runtimeConfig?.agent?.system_prompt);
   const parametersSchema = buildGatherSchemaFromMappings(params.runtimeConfig?.mappings);
-  const gatherPayload = sanitizeTelnyxPayload({
-    greeting,
-    parameters: parametersSchema,
-    ...(model || instructions
-      ? {
-        assistant: {
-          ...(model ? { model } : {}),
-          ...(instructions ? { instructions } : {}),
-        },
-      }
-      : {}),
-    ...(voice ? { voice } : {}),
-    ...(language ? { language } : {}),
-    ...((transcriptionModel || language)
-      ? {
-        transcription: {
-          ...(transcriptionModel ? { model: transcriptionModel } : {}),
-          ...(language ? { language } : {}),
-        },
-      }
-      : {}),
-    send_message_history_updates: true,
-  });
+  const requiredFieldInstructions = buildRequiredFieldCollectionInstructions(parametersSchema);
+  const combinedRequiredFieldInstructions = [
+    requiredFieldInstructions,
+    params.crmRequiredFieldInstructions ?? null,
+  ].filter((entry): entry is string => Boolean(entry)).join('\n\n');
+  const providerBaseInstructions = normalizedSystemPrompt ? buildVoiceProviderInstructions(normalizedSystemPrompt) : null;
+  const instructions = providerBaseInstructions
+    ? [providerBaseInstructions, combinedRequiredFieldInstructions].filter(Boolean).join('\n\n')
+    : (combinedRequiredFieldInstructions || null);
+  const voice = normalizeGatherVoice(params.runtimeConfig?.agent?.telnyx_voice);
+  const agentLanguage = normalizeGatherLanguage(params.runtimeConfig?.agent?.telnyx_language);
+  const language = agentLanguage ?? DEFAULT_GATHER_LANGUAGE;
+  const agentTranscriptionModel = normalizeGatherTranscriptionModel(params.runtimeConfig?.agent?.telnyx_transcription_model);
+  const transcriptionModel = agentTranscriptionModel ?? DEFAULT_GATHER_TRANSCRIPTION_MODEL;
+  const interruptionSettings = buildGatherInterruptionSettings();
+  const hasRawAgentLanguage = Boolean(ensureNonEmpty(params.runtimeConfig?.agent?.telnyx_language));
+  const hasRawAgentTranscriptionModel = Boolean(ensureNonEmpty(params.runtimeConfig?.agent?.telnyx_transcription_model));
+  const usedLanguageFallback = !agentLanguage && hasRawAgentLanguage;
+  const usedTranscriptionModelFallback = !agentTranscriptionModel && hasRawAgentTranscriptionModel;
+  const gatherSettingsSummary = {
+    userResponseTimeoutMs: AI_USER_RESPONSE_TIMEOUT_MS,
+    sendPartialResults: AI_SEND_PARTIAL_RESULTS,
+    sendMessageHistoryUpdates: true,
+    bargeInEnabled: Boolean(interruptionSettings),
+    effectiveLanguage: language,
+    effectiveTranscriptionModel: transcriptionModel,
+    usedLanguageFallback,
+    usedTranscriptionModelFallback,
+  };
 
   console.log('[telnyx-voice-webhook] gather fallback request', {
     ...params.logContext,
     fallbackReason: params.fallbackReason,
-    payload: gatherPayload,
+    gatherSettings: gatherSettingsSummary,
+    hasModel: Boolean(model),
+    hasInstructions: Boolean(instructions),
+    providerInstructionLength: instructions?.length ?? 0,
+    hasVoice: Boolean(voice),
+    schemaPropertyCount: Object.keys(parametersSchema.properties ?? {}).length,
+    requiredFieldCount: Array.isArray(parametersSchema.required) ? parametersSchema.required.length : 0,
   });
 
-  const gatherResult = await startGatherUsingAi({
+  const baseGatherParams = {
     callControlId: params.callControlId,
     commandId: commandId('gather_start', params.callControlId),
     clientState: buildClientState(params.workspaceId, params.voiceCallId),
@@ -771,13 +1015,37 @@ async function startGatherFallback(params: {
         },
       }
       : {}),
+    userResponseTimeoutMs: AI_USER_RESPONSE_TIMEOUT_MS,
+    sendPartialResults: AI_SEND_PARTIAL_RESULTS,
     sendMessageHistoryUpdates: true,
     logContext: {
       ...params.logContext,
       fallbackReason: params.fallbackReason,
-      payload: gatherPayload,
+      gatherSettings: gatherSettingsSummary,
     },
-  });
+  };
+
+  let gatherResult;
+
+  try {
+    gatherResult = await startGatherUsingAi({
+      ...baseGatherParams,
+      ...(interruptionSettings ? { interruptionSettings } : {}),
+    });
+  } catch (error) {
+    if (isTelnyxInvalidRequestError(error) && interruptionSettings) {
+      console.warn('[telnyx-voice-webhook] gather fallback retrying without interruption_settings', {
+        ...params.logContext,
+        fallbackReason: params.fallbackReason,
+        message: safeErrorMessage(error),
+        telnyxStatus: error.status,
+      });
+
+      gatherResult = await startGatherUsingAi(baseGatherParams);
+    } else {
+      throw error;
+    }
+  }
 
   console.log('[telnyx-voice-webhook] gather_using_ai fallback started', {
     ...params.logContext,
@@ -787,6 +1055,7 @@ async function startGatherFallback(params: {
     commandId: gatherResult.commandId,
     status: gatherResult.status,
     fallbackReason: params.fallbackReason,
+    gatherSettings: gatherSettingsSummary,
   });
 
   return gatherResult;
@@ -862,7 +1131,25 @@ Deno.serve(async (request) => {
       }, 200);
     }
 
-    const callControlId = ensureNonEmpty(normalizedEvent.callControlId);
+    const callControlIdFromEvent = ensureNonEmpty(normalizedEvent.callControlId);
+    const callSessionIdFromEvent = ensureNonEmpty(normalizedEvent.callSessionId);
+    let existingCallGlobal: Awaited<ReturnType<typeof findExistingVoiceCallByControlIdGlobal>> = null;
+    let callControlId = callControlIdFromEvent;
+
+    if (!callControlId && callSessionIdFromEvent) {
+      existingCallGlobal = await findExistingVoiceCallBySessionIdGlobal(db, callSessionIdFromEvent);
+      callControlId = ensureNonEmpty(existingCallGlobal?.provider_call_control_id);
+
+      if (callControlId) {
+        console.log('[telnyx-voice-webhook] resolved missing call_control_id from call_session_id', {
+          requestTraceId,
+          eventType: normalizedEvent.eventType,
+          providerEventId: normalizedEvent.providerEventId,
+          callSessionId: callSessionIdFromEvent,
+          resolvedCallControlId: callControlId,
+        });
+      }
+    }
 
     if (!callControlId) {
       return jsonResponse({
@@ -875,10 +1162,8 @@ Deno.serve(async (request) => {
     const toNumberCandidate = ensureNonEmpty(normalizedEvent.toNumberE164);
     const toNumber = isE164(toNumberCandidate) ? toNumberCandidate : null;
     let workspacePhoneNumber = toNumber ? await findWorkspacePhoneNumberByE164(db, toNumber) : null;
-    let existingCallGlobal: Awaited<ReturnType<typeof findExistingVoiceCallByControlIdGlobal>> = null;
-
     if (!workspacePhoneNumber) {
-      existingCallGlobal = await findExistingVoiceCallByControlIdGlobal(db, callControlId);
+      existingCallGlobal = existingCallGlobal ?? await findExistingVoiceCallByControlIdGlobal(db, callControlId);
 
       if (existingCallGlobal) {
         const existingWorkspaceId = ensureNonEmpty(existingCallGlobal.workspace_id);
@@ -992,7 +1277,8 @@ Deno.serve(async (request) => {
         ? 'answered'
         : normalizedEvent.eventType === 'call.ai_gather.ended' ||
             normalizedEvent.eventType === 'call.gather.ended' ||
-            normalizedEvent.eventType === 'call.conversation.ended'
+            normalizedEvent.eventType === 'call.conversation.ended' ||
+            normalizedEvent.eventType === 'call.analyzed'
           ? 'gathering'
           : 'ended';
 
@@ -1062,6 +1348,14 @@ Deno.serve(async (request) => {
     }
 
     if (normalizedEvent.eventType === 'call.answered') {
+      const answeredProcessingStartedAt = performance.now();
+      console.log('[telnyx-voice-webhook] call.answered startup begin', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+      });
+
       const answeredCall = await applyCallAnswered(db, {
         workspaceId,
         voiceCallId: call.id,
@@ -1090,15 +1384,8 @@ Deno.serve(async (request) => {
         workspaceId,
         workspacePhoneNumber.id,
       );
-      await syncTelnyxResourceIdsFromEnv({
-        db,
-        workspaceId,
-        workspacePhoneNumberId: workspacePhoneNumber.id,
-        voiceAgentId: runtimeConfig?.agent?.id ?? null,
-        currentAgentAssistantId: runtimeConfig?.agent?.telnyx_assistant_id ?? null,
-        currentPhoneConnectionId: workspacePhoneNumber.telnyx_connection_id ?? null,
-        logContext: telnyxLogContext,
-      });
+      const requiredCrmFields = await listActiveRequiredRecordFields(db, workspaceId);
+      const crmRequiredFieldInstructions = buildCrmRequiredFieldInstructions(requiredCrmFields);
 
       const assistantResolution = resolveAssistantId(runtimeConfig?.agent);
       const assistantId = assistantResolution.assistantId;
@@ -1108,6 +1395,48 @@ Deno.serve(async (request) => {
         assistantIdSource: assistantResolution.source,
         hasAssistantId: Boolean(assistantId),
       });
+
+      console.log('[telnyx-voice-webhook] using gather fallback (gather_using_ai) instead of assistant per config', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        runtimeVoiceAgentId: runtimeConfig?.agent.id ?? null,
+        configuredAssistantId: runtimeConfig?.agent.telnyx_assistant_id ?? null,
+      });
+
+      console.log('[telnyx-voice-webhook] call.answered gather start pending', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        startupElapsedMs: Math.round(performance.now() - answeredProcessingStartedAt),
+      });
+
+      await startGatherFallback({
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        runtimeConfig,
+        crmRequiredFieldInstructions,
+        logContext: telnyxLogContext,
+        fallbackReason: 'assistant_disabled_by_user',
+      });
+
+      console.log('[telnyx-voice-webhook] call.answered gather started', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+        startupElapsedMs: Math.round(performance.now() - answeredProcessingStartedAt),
+      });
+
+      await applyCallGathering(db, {
+        workspaceId,
+        voiceCallId: call.id,
+      });
+
+      const postGatherSetupStartedAt = performance.now();
 
       await setVoiceCallRuntimeMode(db, {
         workspaceId,
@@ -1181,27 +1510,23 @@ Deno.serve(async (request) => {
         logContext: telnyxLogContext,
       });
 
-      console.log('[telnyx-voice-webhook] using gather fallback (gather_using_ai) instead of assistant per config', {
+      await syncTelnyxResourceIdsFromEnv({
+        db,
+        workspaceId,
+        workspacePhoneNumberId: workspacePhoneNumber.id,
+        voiceAgentId: runtimeConfig?.agent?.id ?? null,
+        currentAgentAssistantId: runtimeConfig?.agent?.telnyx_assistant_id ?? null,
+        currentPhoneConnectionId: workspacePhoneNumber.telnyx_connection_id ?? null,
+        logContext: telnyxLogContext,
+      });
+
+      console.log('[telnyx-voice-webhook] call.answered deferred setup complete', {
         ...telnyxLogContext,
         workspaceId,
         voiceCallId: call.id,
         callControlId: call.provider_call_control_id,
-        runtimeVoiceAgentId: runtimeConfig?.agent.id ?? null,
-        configuredAssistantId: runtimeConfig?.agent.telnyx_assistant_id ?? null,
-      });
-
-      await startGatherFallback({
-        workspaceId,
-        voiceCallId: call.id,
-        callControlId: call.provider_call_control_id,
-        runtimeConfig,
-        logContext: telnyxLogContext,
-        fallbackReason: 'assistant_disabled_by_user',
-      });
-
-      await applyCallGathering(db, {
-        workspaceId,
-        voiceCallId: call.id,
+        deferredSetupMs: Math.round(performance.now() - postGatherSetupStartedAt),
+        totalAnsweredFlowMs: Math.round(performance.now() - answeredProcessingStartedAt),
       });
 
       await markEventProcessed(db, { workspaceId, eventId });
@@ -1222,11 +1547,17 @@ Deno.serve(async (request) => {
         messageSummary,
       });
 
+      const existingBeforeGatherEnded = await findVoiceCallById(db, workspaceId, call.id);
+      const incomingGatherResult = toJsonValue(normalizedEvent.gatherResult);
+      const incomingMessageHistory = toJsonValue(normalizedEvent.messageHistory);
+      const mergedGatherResult = incomingGatherResult ?? toJsonValue(existingBeforeGatherEnded?.gather_result);
+      const mergedMessageHistory = incomingMessageHistory ?? toJsonValue(existingBeforeGatherEnded?.message_history);
+
       await applyGatherEnded(db, {
         workspaceId,
         voiceCallId: call.id,
-        gatherResult: toJsonValue(normalizedEvent.gatherResult),
-        messageHistory: toJsonValue(normalizedEvent.messageHistory),
+        gatherResult: mergedGatherResult,
+        messageHistory: mergedMessageHistory,
         providerGatherStatus: normalizedEvent.gatherStatus,
         gatherStatus: 'completed',
         gatherCompletedAt: occurredAt,
@@ -1273,6 +1604,18 @@ Deno.serve(async (request) => {
           throw error;
         }
       }
+
+      await markEventProcessed(db, { workspaceId, eventId });
+      return jsonResponse({ ok: true, handled: normalizedEvent.eventType }, 200);
+    }
+
+    if (normalizedEvent.eventType === 'call.analyzed') {
+      console.log('[telnyx-voice-webhook] call.analyzed received (non-terminal), skipping forced hangup', {
+        ...telnyxLogContext,
+        workspaceId,
+        voiceCallId: call.id,
+        callControlId: call.provider_call_control_id,
+      });
 
       await markEventProcessed(db, { workspaceId, eventId });
       return jsonResponse({ ok: true, handled: normalizedEvent.eventType }, 200);

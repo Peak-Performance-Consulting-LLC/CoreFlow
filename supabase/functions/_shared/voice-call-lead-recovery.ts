@@ -58,6 +58,8 @@ interface TranscriptSignals {
 const LIGHT_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CRORE_REGEX = /\b(?:crore|crores|karoor|karoor|croor)\b/;
 const LAKH_REGEX = /\b(?:lakh|lakhs)\b/;
+const RECAP_LABEL_REGEX = /\b(?:name|email|inquiry|preferred location|property type|budget|timeline|financing needed)\s*:/i;
+const RECAP_LABEL_SPLIT_REGEX = /\s+(?:name|email|inquiry|preferred location|property type|budget|timeline|financing needed)\s*:/i;
 
 function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, ' ').trim();
@@ -140,12 +142,16 @@ function getJoinedTranscript(messages: TranscriptMessage[], role?: string) {
 }
 
 function extractLabeledValue(text: string, label: string) {
-  const match = text.match(new RegExp(`${label}\\s*:\\s*([^\\n]+)`, 'i'));
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = text.match(new RegExp(
+    `${escapedLabel}\\s*:\\s*([\\s\\S]*?)(?=\\s+(?:name|email|inquiry|preferred location|property type|budget|timeline|financing needed)\\s*:|$)`,
+    'i',
+  ));
   return cleanupExtractedText(match?.[1] ?? null);
 }
 
 function isAcknowledgement(value: string) {
-  const normalized = normalizeString(value).toLowerCase();
+  const normalized = normalizeTranscriptUserContent(value).toLowerCase();
   return normalized === 'yes' ||
     normalized === 'yes yes' ||
     normalized === 'yeah' ||
@@ -155,6 +161,27 @@ function isAcknowledgement(value: string) {
     normalized === 'okay' ||
     normalized === 'no' ||
     normalized === 'no no';
+}
+
+function normalizeTranscriptUserContent(value: string) {
+  return normalizeString(value)
+    .replace(/\[(?:long\s+)?silence\]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isBridgeAssistantLine(value: string, promptPattern: RegExp) {
+  const normalized = normalizeString(value).toLowerCase();
+
+  if (!normalized) {
+    return true;
+  }
+
+  if (promptPattern.test(normalized)) {
+    return true;
+  }
+
+  return /^(sure|okay|ok|alright|all right|thanks|thank you|great|got it|no problem|certainly)[!. ,]*$/.test(normalized);
 }
 
 function findLastUserResponse(messages: TranscriptMessage[], promptPattern: RegExp, allowAcknowledgement = false) {
@@ -168,11 +195,22 @@ function findLastUserResponse(messages: TranscriptMessage[], promptPattern: RegE
     }
 
     let candidate: string | null = null;
+    let assistantTurnsSincePrompt = 0;
 
     for (let inner = index + 1; inner < messages.length; inner += 1) {
       const next = messages[inner];
 
       if (next.role === 'assistant') {
+        assistantTurnsSincePrompt += 1;
+
+        if (assistantTurnsSincePrompt > 3) {
+          break;
+        }
+
+        if (isBridgeAssistantLine(next.content, promptPattern)) {
+          continue;
+        }
+
         break;
       }
 
@@ -180,11 +218,18 @@ function findLastUserResponse(messages: TranscriptMessage[], promptPattern: RegE
         continue;
       }
 
-      if (!allowAcknowledgement && isAcknowledgement(next.content)) {
+      const normalizedUserContent = normalizeTranscriptUserContent(next.content);
+
+      if (!normalizedUserContent) {
         continue;
       }
 
-      candidate = next.content;
+      if (!allowAcknowledgement && isAcknowledgement(normalizedUserContent)) {
+        continue;
+      }
+
+      candidate = normalizedUserContent;
+      break;
     }
 
     if (candidate) {
@@ -227,15 +272,11 @@ function extractEmailFromMessages(messages: TranscriptMessage[]) {
     if (fromLabeled) {
       return fromLabeled;
     }
-
-    const fromMessage = extractEmailFromText(message.content);
-
-    if (fromMessage) {
-      return fromMessage;
-    }
   }
 
-  for (const message of [...messages].reverse()) {
+  // Prioritize caller utterances over assistant recap text to avoid
+  // extracting accidental prompt boilerplate as an email.
+  for (const message of [...getRoleMessages(messages, 'user')].reverse()) {
     const fromMessage = extractEmailFromText(message.content);
 
     if (fromMessage) {
@@ -429,7 +470,47 @@ function matchSelectOption(field: ActiveRecordCustomField, value: string | null)
   }
 
   const contains = options.find((option) => lowered.includes(option.toLowerCase()) || option.toLowerCase().includes(lowered));
-  return contains ?? null;
+  if (contains) {
+    return contains;
+  }
+
+  const isPropertyTypeField = /property/i.test(field.field_key) ||
+    (/property/i.test(field.label) && /type/i.test(field.label));
+
+  if (!isPropertyTypeField) {
+    return null;
+  }
+
+  const semanticMatch = (
+    keywords: string[],
+    optionTokens: string[],
+  ) => {
+    if (!keywords.some((keyword) => lowered.includes(keyword))) {
+      return null;
+    }
+
+    return options.find((option) => {
+      const optionLower = option.toLowerCase();
+      return optionTokens.some((token) => optionLower.includes(token));
+    }) ?? null;
+  };
+
+  return semanticMatch(
+    ['commercial', 'office', 'shop', 'retail'],
+    ['commercial', 'office', 'shop', 'retail'],
+  ) ??
+    semanticMatch(
+      ['plot', 'land', 'site'],
+      ['plot', 'land', 'site'],
+    ) ??
+    semanticMatch(
+      ['villa', 'bungalow', 'independent house', 'independent'],
+      ['villa', 'bungalow', 'independent'],
+    ) ??
+    semanticMatch(
+      ['apartment', 'flat', 'residential', 'home', 'house'],
+      ['apartment', 'flat', 'residential', 'home', 'house'],
+    );
 }
 
 function normalizeCustomFieldValue(field: ActiveRecordCustomField, value: unknown) {
@@ -567,7 +648,7 @@ function extractTranscriptSignals(
   const entireTranscript = getJoinedTranscript(messages);
   const recapMessage = [...getRoleMessages(messages, 'assistant')]
     .reverse()
-    .find((message) => /name\s*:|email\s*:|inquiry\s*:/i.test(message.content))
+    .find((message) => RECAP_LABEL_REGEX.test(message.content))
     ?.content ?? null;
   const inquiryText = recapMessage ? extractLabeledValue(recapMessage, 'Inquiry') : null;
   const propertyField = findFieldBySemantic(fields, 'property_type');
@@ -585,17 +666,32 @@ function extractTranscriptSignals(
       field_type: 'select',
       is_required: false,
       options: ['Apartment', 'Villa', 'Plot', 'Commercial'],
-    }, findLastUserResponse(messages, /type of house|property type|looking to buy|villa|apartment|plot|commercial/i, true));
+    }, findLastUserResponse(messages, /type of house|property type|looking to buy|villa|apartment|plot|commercial|house|home|residential|land|office|shop/i, true));
 
   const locationFromInquiry = cleanupExtractedText(
     inquiryText?.match(/\bin\s+([A-Za-z][A-Za-z' -]{1,80}?)(?:\s+with\b|,|\.|$)/i)?.[1] ?? null,
   );
+  const locationFromAssistantRecap = cleanupExtractedText(
+    [...getRoleMessages(messages, 'assistant')]
+      .reverse()
+      .map((entry) => entry.content.match(/\b(?:looking for|interested in|in)\s+([A-Za-z][A-Za-z' -]{1,80}?)(?:\s+with\b|,|\.|$)/i)?.[1] ?? null)
+      .find((entry) => Boolean(entry)) ?? null,
+  );
   const preferredLocation = locationFromInquiry ??
+    locationFromAssistantRecap ??
     findLastUserResponse(messages, /preferred location|share the preferred location|location/i);
   const budgetText = inquiryText?.match(/\bbudget(?: range)?(?: of)?\s+([^,.\n]+)/i)?.[1] ??
     findLastUserResponse(messages, /\bbudget/i, true);
   const financingText = inquiryText ??
     findLastUserResponse(messages, /\bfinanc/i, true);
+  const cleanName = (value: string | null) => {
+    if (!value) {
+      return null;
+    }
+
+    const primary = value.split(RECAP_LABEL_SPLIT_REGEX, 1)[0] ?? value;
+    return cleanupExtractedText(primary);
+  };
   const financingRequired = financingText
     ? (/no financ/i.test(financingText.toLowerCase())
       ? false
@@ -605,8 +701,10 @@ function extractTranscriptSignals(
     : null;
 
   return {
-    fullName: extractNameFromAssistantMessages(messages) ??
+    fullName: cleanName(
+      extractNameFromAssistantMessages(messages) ??
       findLastUserResponse(messages, /full name|spell your name/i),
+    ),
     email: extractEmailFromMessages(messages) ??
       extractEmailFromText(findLastUserResponse(messages, /\bemail\b/i, true)),
     propertyType,

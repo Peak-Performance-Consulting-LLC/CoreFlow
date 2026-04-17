@@ -74,6 +74,18 @@ export interface VoiceAgentDetailResponse {
   mappings: VoiceAgentMappingRecord[];
 }
 
+export interface VoiceAgentTelnyxOptions {
+  telnyx_models: string[];
+  telnyx_voices: string[];
+  telnyx_transcription_models: string[];
+  telnyx_languages: string[];
+}
+
+export interface VoiceAgentTelnyxOptionsResponse {
+  options: VoiceAgentTelnyxOptions;
+  warnings?: string[];
+}
+
 export interface VoiceAgentCreateInput {
   workspace_id: string;
   name: string;
@@ -143,6 +155,7 @@ interface CacheEntry<T> {
 
 const voiceAgentListCache = new Map<string, CacheEntry<{ agents: VoiceAgentSummary[] }>>();
 const voiceAgentDetailCache = new Map<string, CacheEntry<VoiceAgentDetailResponse>>();
+const voiceAgentTelnyxOptionsCache = new Map<string, CacheEntry<VoiceAgentTelnyxOptionsResponse>>();
 
 function getAuthHeaders(session: Session) {
   return {
@@ -340,4 +353,43 @@ export async function setVoiceAgentMappings(
   const response = await invoke<{ mappings: VoiceAgentMappingRecord[] }>('voice-agent-set-mappings', session, payload);
   invalidateVoiceAgentCaches(payload.workspace_id, payload.voice_agent_id);
   return response;
+}
+
+export async function listVoiceAgentTelnyxOptions(session: Session, workspaceId: string) {
+  const cachedEntry = voiceAgentTelnyxOptionsCache.get(workspaceId);
+
+  if (cachedEntry?.promise) {
+    return cachedEntry.promise;
+  }
+
+  if (isCacheFresh(cachedEntry, VOICE_AGENT_CACHE_TTL_MS)) {
+    return cachedEntry!.data as VoiceAgentTelnyxOptionsResponse;
+  }
+
+  const request = invoke<VoiceAgentTelnyxOptionsResponse>('voice-agent-options', session, {
+    workspace_id: workspaceId,
+  })
+    .then((response) => {
+      voiceAgentTelnyxOptionsCache.set(workspaceId, {
+        data: response,
+        fetchedAt: Date.now(),
+      });
+      return response;
+    })
+    .catch((error) => {
+      if (cachedEntry?.data) {
+        voiceAgentTelnyxOptionsCache.set(workspaceId, cachedEntry);
+      } else {
+        voiceAgentTelnyxOptionsCache.delete(workspaceId);
+      }
+      throw error;
+    });
+
+  voiceAgentTelnyxOptionsCache.set(workspaceId, {
+    data: cachedEntry?.data,
+    fetchedAt: cachedEntry?.fetchedAt ?? 0,
+    promise: request,
+  });
+
+  return request;
 }

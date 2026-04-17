@@ -108,6 +108,20 @@ export interface VoiceOpsArtifactRecord {
   updated_at: string;
 }
 
+export interface VoiceOpsTaskRecord {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  due_at: string | null;
+  assigned_to: string | null;
+  created_by: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface VoiceCallListQuery {
   workspace_id: string;
   outcome_status?: VoiceOutcomeStatus | null;
@@ -192,4 +206,16 @@ export async function resolveVoiceReview(
   },
 ) {
   return invoke<{ call: VoiceOpsCallRecord }>('voice-call-resolve-review', session, payload);
+}
+
+export async function createVoiceTaskFromRecommendation(
+  session: Session,
+  payload: {
+    workspace_id: string;
+    voice_call_id: string;
+    artifact_id: string;
+  },
+) {
+  const response = await invoke<{ task: VoiceOpsTaskRecord }>('voice-call-create-task', session, payload);
+  return response.task;
 }
