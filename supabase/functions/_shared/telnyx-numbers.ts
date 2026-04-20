@@ -11,13 +11,16 @@ export interface TelnyxNumbersClientConfig {
   timeoutMs?: number;
 }
 
-export interface SearchAvailableUsPhoneNumbersParams extends TelnyxNumbersClientConfig {
+export interface SearchAvailablePhoneNumbersParams extends TelnyxNumbersClientConfig {
+  countryCode?: string | null;
   locality?: string | null;
   administrativeArea?: string | null;
   npa?: string | null;
   limit?: number | null;
   phoneNumberType?: string | null;
 }
+
+export type SearchAvailableUsPhoneNumbersParams = SearchAvailablePhoneNumbersParams;
 
 export interface TelnyxAvailablePhoneNumber {
   phoneNumber: string;
@@ -431,9 +434,6 @@ export function resolveManagedVoiceConnectionId() {
 }
 
 export async function searchAvailableUsPhoneNumbers(params: SearchAvailableUsPhoneNumbersParams) {
-  const limit = Number.isFinite(params.limit) ? Math.min(Math.max(1, Number(params.limit)), 20) : 10;
-  const locality = getNullableString(params.locality);
-  const administrativeArea = getNullableString(params.administrativeArea);
   const npa = getNullableString(params.npa);
   const phoneNumberType = getNullableString(params.phoneNumberType);
 
@@ -445,11 +445,39 @@ export async function searchAvailableUsPhoneNumbers(params: SearchAvailableUsPho
     throw new Error('phone_number_type must be either "local" or "toll_free".');
   }
 
+  return searchAvailablePhoneNumbers({
+    ...params,
+    countryCode: 'US',
+    npa,
+    phoneNumberType,
+  });
+}
+
+export async function searchAvailablePhoneNumbers(params: SearchAvailablePhoneNumbersParams) {
+  const limit = Number.isFinite(params.limit) ? Math.min(Math.max(1, Number(params.limit)), 20) : 10;
+  const countryCode = getNullableString(params.countryCode)?.toUpperCase() ?? null;
+  const locality = getNullableString(params.locality);
+  const administrativeArea = getNullableString(params.administrativeArea);
+  const npa = getNullableString(params.npa);
+  const phoneNumberType = getNullableString(params.phoneNumberType);
+
+  if (!countryCode) {
+    throw new Error('country_code is required and must be a valid 2-letter ISO country code.');
+  }
+
+  if (!/^[A-Z]{2}$/.test(countryCode)) {
+    throw new Error('country_code must be a valid 2-letter ISO country code.');
+  }
+
+  if (npa && !/^[0-9]{1,6}$/.test(npa)) {
+    throw new Error('npa must be a numeric national destination code with 1 to 6 digits.');
+  }
+
   const normalizedPhoneNumberType = phoneNumberType === 'toll_free' ? 'toll-free' : phoneNumberType;
 
   const response = await telnyxRequest(params, 'GET', '/available_phone_numbers', {
     query: {
-      'filter[country_code]': 'US',
+      'filter[country_code]': countryCode,
       ...(locality ? { 'filter[locality]': locality } : {}),
       ...(administrativeArea ? { 'filter[administrative_area]': administrativeArea } : {}),
       ...(npa ? { 'filter[national_destination_code]': npa } : {}),

@@ -17,6 +17,7 @@ import { VoiceNumbersPage } from '../pages/VoiceNumbersPage';
 import { VoiceNewNumberPage } from '../pages/VoiceNewNumberPage';
 import { VoiceAssistantsPage } from '../pages/VoiceAssistantsPage';
 import { VoiceNewAssistantPage } from '../pages/VoiceNewAssistantPage';
+import { EmailPage } from '../pages/EmailPage';
 
 export function AppRoutes() {
   return (
@@ -73,6 +74,7 @@ export function AppRoutes() {
             </CrmWorkspaceProvider>
           )}
         />
+        <Route path="/email" element={<EmailPage />} />
         <Route element={<CrmWorkspaceRoute />}>
           <Route path="/records" element={<RecordsPage />} />
           <Route path="/records/new" element={<RecordCreatePage />} />

@@ -37,6 +37,7 @@ export interface VoiceNumberSearchResult {
 
 export interface VoiceNumberSearchFilters {
   workspace_id: string;
+  country_code?: string;
   locality?: string;
   administrative_area?: string;
   npa?: string;

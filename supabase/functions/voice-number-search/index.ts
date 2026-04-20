@@ -1,6 +1,6 @@
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
 import { authenticateRequest, ensureWorkspaceOwner } from '../_shared/server.ts';
-import { searchAvailableUsPhoneNumbers } from '../_shared/telnyx-numbers.ts';
+import { searchAvailablePhoneNumbers } from '../_shared/telnyx-numbers.ts';
 
 function normalizePositiveInteger(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -33,7 +33,8 @@ Deno.serve(async (request) => {
 
     await ensureWorkspaceOwner(authContext.serviceClient, workspaceId, authContext.user.id);
 
-    const results = await searchAvailableUsPhoneNumbers({
+    const results = await searchAvailablePhoneNumbers({
+      countryCode: typeof payload.country_code === 'string' ? payload.country_code : 'US',
       locality: typeof payload.locality === 'string' ? payload.locality : null,
       administrativeArea: typeof payload.administrative_area === 'string' ? payload.administrative_area : null,
       npa: typeof payload.npa === 'string' ? payload.npa : null,

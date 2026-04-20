@@ -3,6 +3,7 @@ import {
   Bot,
   LayoutGrid,
   ListChecks,
+  Mail,
   PhoneCall,
   PlusCircle,
   Rows3,
@@ -29,6 +30,7 @@ export function DashboardSidebar({ workspace }: { workspace: WorkspaceSummary })
     { label: 'Overview', icon: LayoutGrid, to: `/dashboard/${workspace.crmType}`, end: true },
     { label: 'Records', icon: Rows3, to: '/records' },
     { label: 'Imports', icon: ArrowDownToLine, to: '/imports' },
+    { label: 'Email', icon: Mail, to: '/email', end: true },
   ];
   const ownerVoiceItems: SidebarNavItem[] = [
     { label: 'Provisioned numbers', icon: ListChecks, to: '/voice/numbers', end: true },

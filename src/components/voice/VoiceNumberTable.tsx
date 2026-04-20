@@ -62,7 +62,7 @@ export function VoiceNumberTable({
           <div>
             <h3 className="font-display text-2xl text-slate-900">No voice numbers yet</h3>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-              Search US numbers below to provision the first workspace line. Once a number is purchased and active, the
+              Search numbers below to provision the first workspace line. Once a number is purchased and active, the
               existing inbound Telnyx webhook flow can resolve this workspace from that number.
             </p>
           </div>

@@ -13,10 +13,10 @@ interface VoiceNumberPurchaseDrawerProps {
 
 function formatLocation(result: VoiceNumberSearchResult | null) {
   if (!result) {
-    return 'US';
+    return 'Unknown';
   }
 
-  return [result.locality, result.administrativeArea, result.countryCode].filter(Boolean).join(', ') || 'US';
+  return [result.locality, result.administrativeArea, result.countryCode].filter(Boolean).join(', ') || 'Unknown';
 }
 
 export function VoiceNumberPurchaseDrawer({

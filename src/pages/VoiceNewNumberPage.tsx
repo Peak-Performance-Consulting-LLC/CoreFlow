@@ -19,6 +19,7 @@ export function VoiceNewNumberPage() {
   const [selectedResult, setSelectedResult] = useState<VoiceNumberSearchResult | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [filters, setFilters] = useState({
+    country_code: 'US',
     locality: '',
     administrative_area: '',
     npa: '',
@@ -45,6 +46,7 @@ export function VoiceNewNumberPage() {
     try {
       const response = await searchVoiceNumbers(session, {
         workspace_id: workspace.id,
+        country_code: filters.country_code || undefined,
         locality: filters.locality || undefined,
         administrative_area: filters.administrative_area || undefined,
         npa: filters.npa || undefined,
@@ -104,7 +106,7 @@ export function VoiceNewNumberPage() {
         <PageHeader
           eyebrow="Voice workspace"
           title="New number"
-          description="Search available US numbers and provision a new managed workspace line."
+          description="Search available voice numbers across countries and provision a new managed workspace line."
           actions={(
             <>
               <Link

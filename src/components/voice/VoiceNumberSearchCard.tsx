@@ -22,6 +22,15 @@ interface VoiceNumberSearchCardProps {
 
 type SuggestionField = 'city' | 'state' | 'areaCode' | null;
 
+interface CountryOption {
+  code: string;
+  name: string;
+}
+
+type IntlWithSupportedValuesOf = typeof Intl & {
+  supportedValuesOf?: (key: 'region') => string[];
+};
+
 interface SuggestionMenuProps<TSuggestion> {
   items: TSuggestion[];
   emptyText: string;
@@ -32,7 +41,29 @@ interface SuggestionMenuProps<TSuggestion> {
 }
 
 function formatLocation(result: VoiceNumberSearchResult) {
-  return [result.locality, result.administrativeArea, result.countryCode].filter(Boolean).join(', ') || 'US';
+  return [result.locality, result.administrativeArea, result.countryCode].filter(Boolean).join(', ') || 'Unknown';
+}
+
+function buildCountryOptions(): CountryOption[] {
+  const intlWithRegions = Intl as IntlWithSupportedValuesOf;
+
+  if (typeof intlWithRegions.supportedValuesOf !== 'function') {
+    return [{ code: 'US', name: 'United States' }];
+  }
+
+  const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
+
+  return intlWithRegions
+    .supportedValuesOf('region')
+    .filter((code: string) => /^[A-Z]{2}$/.test(code))
+    .map((code: string) => {
+      const label = displayNames.of(code);
+      return {
+        code,
+        name: label ?? code,
+      };
+    })
+    .sort((left: CountryOption, right: CountryOption) => left.name.localeCompare(right.name));
 }
 
 function SuggestionMenu<TSuggestion>({
@@ -91,6 +122,7 @@ export function VoiceNumberSearchCard({
   const [areaCodeSuggestions, setAreaCodeSuggestions] = useState<AreaCodeSuggestion[]>([]);
   const [activeField, setActiveField] = useState<SuggestionField>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
+  const countryOptions = useMemo(() => buildCountryOptions(), []);
 
   useEffect(() => {
     let active = true;
@@ -178,14 +210,29 @@ export function VoiceNumberSearchCard({
       <div className="flex flex-col gap-6">
         <div>
           <div className="text-xs uppercase tracking-[0.28em] text-accent-blue">Managed provisioning</div>
-          <h3 className="mt-2 font-display text-2xl text-slate-900">Search available US numbers</h3>
+          <h3 className="mt-2 font-display text-2xl text-slate-900">Search available Numbers</h3>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
-            Search CoreFlow-managed US inventory and provision a workspace line without exposing raw Telnyx setup to the
-            user. Phase 1 intentionally stays US-only.
+            Search CoreFlow-managed inventory and provision a workspace line without exposing raw Telnyx setup to the
+            user.
           </p>
         </div>
 
-        <div ref={formRef} className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div ref={formRef} className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+          <label className="flex flex-col gap-2 text-sm text-slate-700">
+            <span className="font-medium">Country</span>
+            <select
+              value={filters.country_code ?? ''}
+              onChange={(event) => onFilterChange({ country_code: event.target.value })}
+              className="h-12 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900"
+            >
+              {countryOptions.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name} ({country.code})
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
             <span className="font-medium">City</span>
             <div
@@ -227,7 +274,7 @@ export function VoiceNumberSearchCard({
           </label>
 
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
-            <span className="font-medium">State</span>
+            <span className="font-medium">State / Region</span>
             <div
               className={`relative flex h-12 items-center rounded-2xl border bg-white px-4 transition ${
                 activeField === 'state'
@@ -264,7 +311,7 @@ export function VoiceNumberSearchCard({
           </label>
 
           <label className="relative flex flex-col gap-2 text-sm text-slate-700">
-            <span className="font-medium">Area code</span>
+            <span className="font-medium">Area code / NDC</span>
             <div
               className={`relative flex h-12 items-center rounded-2xl border bg-white px-4 transition ${
                 activeField === 'areaCode'
@@ -277,9 +324,9 @@ export function VoiceNumberSearchCard({
                 onFocus={() => setActiveField('areaCode')}
                 onChange={(event) => {
                   setActiveField('areaCode');
-                  onFilterChange({ npa: event.target.value.replace(/\D/g, '').slice(0, 3) });
+                  onFilterChange({ npa: event.target.value.replace(/\D/g, '').slice(0, 6) });
                 }}
-                placeholder="312"
+                placeholder="312 or 20"
                 autoComplete="off"
                 className="h-full w-full bg-transparent pr-10 text-sm text-slate-900 placeholder:text-slate-500"
               />
@@ -337,7 +384,7 @@ export function VoiceNumberSearchCard({
         <div className="flex justify-end">
           <Button type="button" onClick={() => void onSearch()} loading={loading}>
             <Search className="h-4 w-4" />
-            Search US numbers
+            Search Numbers
           </Button>
         </div>
 
@@ -360,7 +407,7 @@ export function VoiceNumberSearchCard({
                       </div>
                     </div>
                     <Button type="button" size="sm" onClick={() => onPurchaseClick(result)}>
-                      Provision
+                      Buy Number
                     </Button>
                   </div>
 
@@ -378,7 +425,7 @@ export function VoiceNumberSearchCard({
             </div>
           ) : (
             <div className="rounded-[28px] border border-slate-300 bg-white px-5 py-4 text-sm text-slate-600">
-              No US numbers matched the current filters. Try a different area code, city, or number type.
+              No numbers matched the current filters. Try a different country, region, or number type.
             </div>
           )
         ) : null}
